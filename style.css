@@ -1,0 +1,304 @@
+:root {
+    /* Default accent theme = Forest Green. Overridden live by the color-theme picker (light mode only — dark mode keeps the slate palette untouched). */
+    --p50: 243 247 241;
+    --p100: 227 236 223;
+    --p200: 196 217 188;
+    --p600: 46 107 69;
+    --p700: 35 87 58;
+    --p800: 26 69 48;
+    --p900: 18 49 32;
+    --p950: 12 36 23;
+}
+body { font-family: 'Inter', ui-sans-serif, system-ui; }
+.font-serif-display { font-family: 'Fraunces', ui-serif, Georgia; }
+.header-texture {
+    background-image:
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0);
+    background-size: 16px 16px;
+}
+.tab-pill {
+    transition: color .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
+body, .header-texture, #calendarGrid, .swatch-btn, table.responsive-table tr {
+    transition: background-color .25s ease, border-color .25s ease, color .25s ease;
+}
+.swatch-btn {
+    width: 26px; height: 26px; border-radius: 9999px; flex-shrink: 0;
+    border: 2px solid white; box-shadow: 0 0 0 1px rgba(0,0,0,.12);
+    cursor: pointer; transition: transform .15s ease, box-shadow .15s ease;
+}
+.swatch-btn:hover { transform: scale(1.12); }
+.swatch-btn.active { box-shadow: 0 0 0 2px rgb(var(--p700)); transform: scale(1.1); }
+.day-cell { cursor: pointer; }
+.day-cell:hover { background-color: rgb(var(--p50)); }
+html.dark .day-cell:hover { background-color: rgb(51 65 85 / .4); }
+.day-cell.is-today .day-number-badge {
+    background-color: rgb(var(--p700)); color: white;
+}
+@media (max-width: 640px) {
+    #calendarGrid.compact-mobile > .day-cell { min-height: 58px !important; padding: 4px !important; }
+    #calendarGrid.compact-mobile .event-pill-list { display: none; }
+    #calendarGrid.compact-mobile .event-dots { display: flex !important; }
+    #calendarGrid.compact-mobile .holiday-label { display: none; }
+}
+@media (max-width: 720px) {
+    table.responsive-table thead { display: none; }
+    table.responsive-table, table.responsive-table tbody, table.responsive-table tr, table.responsive-table td {
+        display: block; width: 100%;
+    }
+    table.responsive-table tr {
+        margin: 0 14px 12px 14px;
+        border: 1px solid rgb(226 232 240);
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: white;
+    }
+    html.dark table.responsive-table tr {
+        border-color: rgb(51 65 85);
+        background: rgb(30 41 59);
+    }
+    table.responsive-table td {
+        padding: 6px 0 !important;
+        text-align: left !important;
+        border: none !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+    table.responsive-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 10px;
+        text-transform: none;
+        color: rgb(148 163 184);
+        flex-shrink: 0;
+    }
+    table.responsive-table td[data-label="Actions"] {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        border-top: 1px dashed rgb(226 232 240);
+        margin-top: 4px;
+        padding-top: 10px !important;
+    }
+    html.dark table.responsive-table td[data-label="Actions"] { border-top-color: rgb(51 65 85); }
+    table.responsive-table td[data-label="Actions"]::before { display: none; }
+    table.responsive-table td[data-label=""]::before { display: none; }
+}
+::-webkit-scrollbar { height: 8px; width: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(148,163,184,.4); border-radius: 8px; }
+html.dark ::-webkit-scrollbar-thumb { background: rgba(var(--neon-a),.35); }
+::-webkit-scrollbar-thumb:hover { background: rgba(var(--neon-a),.6); }
+
+/* ============================================================
+   FUTURISTIC / NEON ACCENT LAYER
+   Adds smooth motion + glow accents on top of the existing
+   clean pastoral theme. Light mode = soft accent-colored glow.
+   Dark mode = crisp cyan/violet neon glow for a dashboard feel.
+============================================================ */
+:root {
+    --neon-a: 34 211 238;   /* cyan */
+    --neon-b: 167 139 250;  /* violet */
+}
+
+* { scroll-behavior: smooth; }
+
+/* Universal smooth motion for anything interactive */
+button, a, input, select, textarea, .tab-pill, .swatch-btn, .day-cell,
+.glow-btn, .stat-card, [id$="Modal"] > div, .event-pill-list > div {
+    transition: background-color .22s ease, border-color .22s ease, color .22s ease,
+                box-shadow .28s cubic-bezier(.4,0,.2,1), transform .18s cubic-bezier(.4,0,.2,1), opacity .22s ease;
+}
+
+/* Primary action glow — subtle accent glow in light mode, neon in dark mode */
+.glow-btn { box-shadow: 0 2px 10px -2px rgba(var(--p700), .35); }
+.glow-btn:hover { transform: translateY(-1px); box-shadow: 0 0 16px 1px rgba(var(--p600), .5), 0 6px 18px -4px rgba(var(--p800), .45); }
+.glow-btn:active { transform: translateY(0) scale(.97); }
+html.dark .glow-btn { box-shadow: 0 0 0 rgba(0,0,0,0); }
+html.dark .glow-btn:hover { box-shadow: 0 0 18px 2px rgba(var(--neon-a), .55), 0 0 34px 6px rgba(var(--neon-b), .25); }
+
+/* Neon-tinted focus states — replaces flat focus rings with a soft glow */
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(var(--p600), .18), 0 0 14px 0 rgba(var(--p600), .22);
+}
+html.dark input:focus, html.dark select:focus, html.dark textarea:focus {
+    box-shadow: 0 0 0 3px rgba(var(--neon-a), .3), 0 0 16px 1px rgba(var(--neon-a), .4);
+}
+
+/* Active tab — glowing underline energy */
+.tab-glow { box-shadow: 0 0 14px -2px rgba(var(--p600), .55); }
+html.dark .tab-glow { box-shadow: 0 0 16px 0 rgba(var(--neon-a), .5), 0 0 30px 4px rgba(var(--neon-b), .18); }
+
+/* Today badge on the calendar — soft pulse of light */
+.day-cell.is-today .day-number-badge {
+    box-shadow: 0 0 0 2px rgba(var(--p700), .2), 0 0 12px 1px rgba(var(--p600), .55);
+    animation: neonPulse 2.6s ease-in-out infinite;
+}
+html.dark .day-cell.is-today .day-number-badge {
+    box-shadow: 0 0 0 2px rgba(var(--neon-a), .3), 0 0 14px 2px rgba(var(--neon-a), .75);
+}
+@keyframes neonPulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.18); }
+}
+
+/* Stat / summary cards lift slightly on hover for a tactile dashboard feel */
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -8px rgba(var(--p800), .35); }
+html.dark .stat-card:hover { box-shadow: 0 0 18px 0 rgba(var(--neon-a), .18); }
+
+/* Header underline — thin gradient energy line, futuristic but understated */
+.header-texture { position: relative; }
+.header-texture::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(var(--p600),.85), rgba(255,255,255,.6), rgba(var(--p600),.85), transparent);
+    opacity: .55;
+}
+html.dark .header-texture::after {
+    background: linear-gradient(90deg, transparent, rgba(var(--neon-a),.9), rgba(var(--neon-b),.9), rgba(var(--neon-a),.9), transparent);
+    opacity: .85;
+}
+
+/* Modal entrance — smooth pop instead of an abrupt appearance */
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(.94) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+[id$="Modal"].flex { animation: modalFade .18s ease; }
+[id$="Modal"].flex > div { animation: modalPop .28s cubic-bezier(.16,1,.3,1); }
+@keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ============================================================
+   TAB PANEL TRANSITIONS — smooth HUD-style fade/slide instead of
+   an instant show/hide swap. Driven by switchTab() in script.js,
+   which adds/removes these classes around the visibility toggle.
+============================================================ */
+[id^="tabContent"]:not(.hidden) { animation: fadeInUp .32s cubic-bezier(.4,0,.2,1); }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes tabPowerUp {
+    0%   { opacity: 0; transform: translateY(10px) scale(.99); filter: blur(3px); }
+    60%  { filter: blur(0); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+/* Calendar day cells: gentle lift + glow instead of a flat hover fill */
+.day-cell:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px rgba(var(--p600), .3); }
+html.dark .day-cell:hover { box-shadow: inset 0 0 0 1px rgba(var(--neon-a), .3), 0 0 10px 0 rgba(var(--neon-a), .12); }
+
+/* Event pills: micro-interaction for a livelier, minimal-but-alive dashboard */
+.event-pill-list > div:hover { transform: translateX(1px); filter: brightness(1.05); }
+
+/* Swatch buttons already animate scale; add a soft glow ring on active */
+.swatch-btn.active { box-shadow: 0 0 0 2px rgb(var(--p700)), 0 0 10px 1px rgba(var(--p600), .5); }
+
+/* ============================================================
+   NAVIGATION BAR — futuristic / sci-fi hover effect
+   Inactive tabs get a traveling neon border-scan + soft backlight
+   instead of a flat instant color swap; the tab-glow (active) tab
+   is excluded so it doesn't fight its own persistent glow on hover.
+============================================================ */
+.tab-pill {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+/* Soft backlight fill, fades in behind the label */
+.tab-pill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: rgb(var(--p100));
+    opacity: 0;
+    transition: opacity .25s ease;
+    z-index: -2;
+}
+html.dark .tab-pill::before { background: rgba(var(--neon-a), .12); }
+.tab-pill:not(.tab-glow):hover::before { opacity: 1; }
+
+/* Traveling neon border — a thin conic "scan" ring clipped to just the
+   pill's outline, like a HUD element powering on */
+.tab-pill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    padding: 1.5px;
+    background: conic-gradient(from var(--scan-angle, 0deg),
+        transparent 0deg,
+        rgba(var(--p600), .95) 40deg,
+        rgba(255,255,255,.9) 60deg,
+        rgba(var(--p600), .95) 80deg,
+        transparent 140deg,
+        transparent 360deg);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity .2s ease;
+    z-index: -1;
+    animation: navScan 1.8s linear infinite;
+    animation-play-state: paused;
+}
+html.dark .tab-pill::after {
+    background: conic-gradient(from var(--scan-angle, 0deg),
+        transparent 0deg,
+        rgba(var(--neon-a), 1) 40deg,
+        rgba(var(--neon-b), 1) 60deg,
+        rgba(var(--neon-a), 1) 80deg,
+        transparent 140deg,
+        transparent 360deg);
+}
+.tab-pill:not(.tab-glow):hover::after {
+    opacity: 1;
+    animation-play-state: running;
+}
+@property --scan-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+@keyframes navScan {
+    from { --scan-angle: 0deg; }
+    to   { --scan-angle: 360deg; }
+}
+
+.tab-pill:not(.tab-glow):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 10px -2px rgba(var(--p600), .5);
+}
+html.dark .tab-pill:not(.tab-glow):hover {
+    box-shadow: 0 0 12px 0 rgba(var(--neon-a), .5), 0 0 22px 3px rgba(var(--neon-b), .22);
+}
+.tab-pill:not(.tab-glow):active { transform: translateY(0) scale(.97); }
+
+/* Quick data-action buttons in the nav bar (Export / Import / Back up now) */
+.nav-action-btn {
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease,
+                box-shadow .25s cubic-bezier(.4,0,.2,1), transform .18s cubic-bezier(.4,0,.2,1);
+}
+.nav-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px -4px rgba(var(--p700), .4);
+    border-color: rgb(var(--p600));
+}
+html.dark .nav-action-btn:hover {
+    box-shadow: 0 0 14px 0 rgba(var(--neon-a), .35);
+    border-color: rgba(var(--neon-a), .5);
+}
+.nav-action-btn:active { transform: translateY(0) scale(.96); }
+
+/* Saved-backup cards in the History & Backups tab */
+.backup-card {
+    transition: transform .18s ease, box-shadow .22s ease, border-color .2s ease, background-color .2s ease;
+}
+.backup-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -6px rgba(var(--p800), .3);
+    border-color: rgb(var(--p200));
+}
+html.dark .backup-card:hover {
+    box-shadow: 0 0 14px 0 rgba(var(--neon-a), .15);
+    border-color: rgba(var(--neon-a), .3);
+}

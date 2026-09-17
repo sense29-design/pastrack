@@ -46,190 +46,8 @@
         }
     </script>
 
-    <style>
-        :root {
-            /* Default accent theme = Forest Green. Overridden live by the color-theme picker (light mode only — dark mode keeps the slate palette untouched). */
-            --p50: 243 247 241;
-            --p100: 227 236 223;
-            --p200: 196 217 188;
-            --p600: 46 107 69;
-            --p700: 35 87 58;
-            --p800: 26 69 48;
-            --p900: 18 49 32;
-            --p950: 12 36 23;
-        }
-        body { font-family: 'Inter', ui-sans-serif, system-ui; }
-        .font-serif-display { font-family: 'Fraunces', ui-serif, Georgia; }
-        .header-texture {
-            background-image:
-                radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0);
-            background-size: 16px 16px;
-        }
-        .tab-pill {
-            transition: color .18s ease, background-color .18s ease, box-shadow .18s ease;
-        }
-        body, .header-texture, #calendarGrid, .swatch-btn, table.responsive-table tr {
-            transition: background-color .25s ease, border-color .25s ease, color .25s ease;
-        }
-        .swatch-btn {
-            width: 26px; height: 26px; border-radius: 9999px; flex-shrink: 0;
-            border: 2px solid white; box-shadow: 0 0 0 1px rgba(0,0,0,.12);
-            cursor: pointer; transition: transform .15s ease, box-shadow .15s ease;
-        }
-        .swatch-btn:hover { transform: scale(1.12); }
-        .swatch-btn.active { box-shadow: 0 0 0 2px rgb(var(--p700)); transform: scale(1.1); }
-        .day-cell { cursor: pointer; }
-        .day-cell:hover { background-color: rgb(var(--p50)); }
-        html.dark .day-cell:hover { background-color: rgb(51 65 85 / .4); }
-        .day-cell.is-today .day-number-badge {
-            background-color: rgb(var(--p700)); color: white;
-        }
-        @media (max-width: 640px) {
-            #calendarGrid.compact-mobile > .day-cell { min-height: 58px !important; padding: 4px !important; }
-            #calendarGrid.compact-mobile .event-pill-list { display: none; }
-            #calendarGrid.compact-mobile .event-dots { display: flex !important; }
-        }
-        @media (max-width: 720px) {
-            table.responsive-table thead { display: none; }
-            table.responsive-table, table.responsive-table tbody, table.responsive-table tr, table.responsive-table td {
-                display: block; width: 100%;
-            }
-            table.responsive-table tr {
-                margin: 0 14px 12px 14px;
-                border: 1px solid rgb(226 232 240);
-                border-radius: 12px;
-                padding: 10px 12px;
-                background: white;
-            }
-            html.dark table.responsive-table tr {
-                border-color: rgb(51 65 85);
-                background: rgb(30 41 59);
-            }
-            table.responsive-table td {
-                padding: 6px 0 !important;
-                text-align: left !important;
-                border: none !important;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 10px;
-            }
-            table.responsive-table td::before {
-                content: attr(data-label);
-                font-weight: 700;
-                font-size: 10px;
-                text-transform: none;
-                color: rgb(148 163 184);
-                flex-shrink: 0;
-            }
-            table.responsive-table td[data-label="Actions"] {
-                justify-content: flex-start;
-                flex-wrap: wrap;
-                border-top: 1px dashed rgb(226 232 240);
-                margin-top: 4px;
-                padding-top: 10px !important;
-            }
-            html.dark table.responsive-table td[data-label="Actions"] { border-top-color: rgb(51 65 85); }
-            table.responsive-table td[data-label="Actions"]::before { display: none; }
-            table.responsive-table td[data-label=""]::before { display: none; }
-        }
-        ::-webkit-scrollbar { height: 8px; width: 8px; }
-        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,.4); border-radius: 8px; }
-        html.dark ::-webkit-scrollbar-thumb { background: rgba(var(--neon-a),.35); }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(var(--neon-a),.6); }
-
-        /* ============================================================
-           FUTURISTIC / NEON ACCENT LAYER
-           Adds smooth motion + glow accents on top of the existing
-           clean pastoral theme. Light mode = soft accent-colored glow.
-           Dark mode = crisp cyan/violet neon glow for a dashboard feel.
-        ============================================================ */
-        :root {
-            --neon-a: 34 211 238;   /* cyan */
-            --neon-b: 167 139 250;  /* violet */
-        }
-
-        * { scroll-behavior: smooth; }
-
-        /* Universal smooth motion for anything interactive */
-        button, a, input, select, textarea, .tab-pill, .swatch-btn, .day-cell,
-        .glow-btn, .stat-card, [id$="Modal"] > div, .event-pill-list > div {
-            transition: background-color .22s ease, border-color .22s ease, color .22s ease,
-                        box-shadow .28s cubic-bezier(.4,0,.2,1), transform .18s cubic-bezier(.4,0,.2,1), opacity .22s ease;
-        }
-
-        /* Primary action glow — subtle accent glow in light mode, neon in dark mode */
-        .glow-btn { box-shadow: 0 2px 10px -2px rgba(var(--p700), .35); }
-        .glow-btn:hover { transform: translateY(-1px); box-shadow: 0 0 16px 1px rgba(var(--p600), .5), 0 6px 18px -4px rgba(var(--p800), .45); }
-        .glow-btn:active { transform: translateY(0) scale(.97); }
-        html.dark .glow-btn { box-shadow: 0 0 0 rgba(0,0,0,0); }
-        html.dark .glow-btn:hover { box-shadow: 0 0 18px 2px rgba(var(--neon-a), .55), 0 0 34px 6px rgba(var(--neon-b), .25); }
-
-        /* Neon-tinted focus states — replaces flat focus rings with a soft glow */
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(var(--p600), .18), 0 0 14px 0 rgba(var(--p600), .22);
-        }
-        html.dark input:focus, html.dark select:focus, html.dark textarea:focus {
-            box-shadow: 0 0 0 3px rgba(var(--neon-a), .3), 0 0 16px 1px rgba(var(--neon-a), .4);
-        }
-
-        /* Active tab — glowing underline energy */
-        .tab-glow { box-shadow: 0 0 14px -2px rgba(var(--p600), .55); }
-        html.dark .tab-glow { box-shadow: 0 0 16px 0 rgba(var(--neon-a), .5), 0 0 30px 4px rgba(var(--neon-b), .18); }
-
-        /* Today badge on the calendar — soft pulse of light */
-        .day-cell.is-today .day-number-badge {
-            box-shadow: 0 0 0 2px rgba(var(--p700), .2), 0 0 12px 1px rgba(var(--p600), .55);
-            animation: neonPulse 2.6s ease-in-out infinite;
-        }
-        html.dark .day-cell.is-today .day-number-badge {
-            box-shadow: 0 0 0 2px rgba(var(--neon-a), .3), 0 0 14px 2px rgba(var(--neon-a), .75);
-        }
-        @keyframes neonPulse {
-            0%, 100% { filter: brightness(1); }
-            50% { filter: brightness(1.18); }
-        }
-
-        /* Stat / summary cards lift slightly on hover for a tactile dashboard feel */
-        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -8px rgba(var(--p800), .35); }
-        html.dark .stat-card:hover { box-shadow: 0 0 18px 0 rgba(var(--neon-a), .18); }
-
-        /* Header underline — thin gradient energy line, futuristic but understated */
-        .header-texture { position: relative; }
-        .header-texture::after {
-            content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(var(--p600),.85), rgba(255,255,255,.6), rgba(var(--p600),.85), transparent);
-            opacity: .55;
-        }
-        html.dark .header-texture::after {
-            background: linear-gradient(90deg, transparent, rgba(var(--neon-a),.9), rgba(var(--neon-b),.9), rgba(var(--neon-a),.9), transparent);
-            opacity: .85;
-        }
-
-        /* Modal entrance — smooth pop instead of an abrupt appearance */
-        @keyframes modalPop {
-            from { opacity: 0; transform: scale(.94) translateY(10px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        [id$="Modal"].flex { animation: modalFade .18s ease; }
-        [id$="Modal"].flex > div { animation: modalPop .28s cubic-bezier(.16,1,.3,1); }
-        @keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Tab panel fade-in on switch */
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-        [id^="tabContent"]:not(.hidden) { animation: fadeInUp .32s cubic-bezier(.4,0,.2,1); }
-
-        /* Calendar day cells: gentle lift + glow instead of a flat hover fill */
-        .day-cell:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px rgba(var(--p600), .3); }
-        html.dark .day-cell:hover { box-shadow: inset 0 0 0 1px rgba(var(--neon-a), .3), 0 0 10px 0 rgba(var(--neon-a), .12); }
-
-        /* Event pills: micro-interaction for a livelier, minimal-but-alive dashboard */
-        .event-pill-list > div:hover { transform: translateX(1px); filter: brightness(1.05); }
-
-        /* Swatch buttons already animate scale; add a soft glow ring on active */
-        .swatch-btn.active { box-shadow: 0 0 0 2px rgb(var(--p700)), 0 0 10px 1px rgba(var(--p600), .5); }
-    </style>
+    <!-- Separated stylesheet -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-pastoral-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs min-h-screen p-3 sm:p-6 flex flex-col justify-between transition-colors duration-200">
 
@@ -306,11 +124,11 @@
             </div>
 
             <div class="flex items-center justify-end gap-2 text-[11px]">
-                <button onclick="exportData()" class="text-pastoral-700 dark:text-slate-300 hover:text-pastoral-900 dark:hover:text-emerald-300 font-semibold px-2.5 py-1.5 rounded-lg border border-pastoral-200 dark:border-slate-700 bg-white dark:bg-slate-800 transition flex items-center gap-1 shadow-xs" title="Download backup JSON">
-                    💾 Export
+                <button onclick="exportData()" class="nav-action-btn text-pastoral-700 dark:text-slate-300 hover:text-pastoral-900 dark:hover:text-emerald-300 font-semibold px-3 py-2 rounded-lg border border-pastoral-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center gap-1.5 shadow-xs" title="Download a full backup (members, finance &amp; calendar) as JSON">
+                    <span>💾</span> Export
                 </button>
-                <label class="text-pastoral-700 dark:text-slate-300 hover:text-pastoral-900 dark:hover:text-emerald-300 font-semibold px-2.5 py-1.5 rounded-lg border border-pastoral-200 dark:border-slate-700 bg-white dark:bg-slate-800 transition cursor-pointer flex items-center gap-1 shadow-xs" title="Restore data from JSON">
-                    📂 Import <input type="file" id="importFile" accept=".json" onchange="importData(event)" class="hidden">
+                <label class="nav-action-btn text-pastoral-700 dark:text-slate-300 hover:text-pastoral-900 dark:hover:text-emerald-300 font-semibold px-3 py-2 rounded-lg border border-pastoral-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer flex items-center gap-1.5 shadow-xs" title="Restore data from a backup JSON file">
+                    <span>📂</span> Import <input type="file" id="importFile" accept=".json" onchange="importData(event)" class="hidden">
                 </label>
             </div>
         </div>
@@ -320,18 +138,18 @@
 
             <!-- TAB 1: MEMBERS DIRECTORY -->
             <div id="tabContentMembers" class="block w-full">
-                <div class="bg-pastoral-50/60 dark:bg-slate-800/40 border-b border-pastoral-100 dark:border-slate-700 px-4 sm:px-6 py-4 grid grid-cols-3 gap-3 text-slate-600 dark:text-slate-300 text-center sm:text-left">
-                    <div class="stat-card bg-white dark:bg-slate-800/80 p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs">
-                        <span class="block text-[10px] font-semibold text-slate-400 dark:text-slate-500">Total cluster members</span>
-                        <span id="statTotalMembers" class="font-serif-display text-lg font-semibold text-pastoral-900 dark:text-white mt-0.5 block">0</span>
+                <div class="bg-pastoral-50/60 dark:bg-slate-800/40 border-b border-pastoral-100 dark:border-slate-700 px-3 sm:px-6 py-4 grid grid-cols-3 gap-2 sm:gap-3 text-slate-600 dark:text-slate-300 text-center sm:text-left">
+                    <div class="stat-card bg-white dark:bg-slate-800/80 p-2 sm:p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-tight">Total cluster members</span>
+                        <span id="statTotalMembers" class="font-serif-display text-base sm:text-lg font-semibold text-pastoral-900 dark:text-white mt-0.5 block">0</span>
                     </div>
-                    <div class="stat-card bg-white dark:bg-slate-800/80 p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs">
-                        <span class="block text-[10px] font-semibold text-slate-400 dark:text-slate-500">Chapter 1 members</span>
-                        <span id="statChapter1" class="font-serif-display text-lg font-semibold text-pastoral-700 dark:text-emerald-400 mt-0.5 block">0</span>
+                    <div class="stat-card bg-white dark:bg-slate-800/80 p-2 sm:p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-tight">Chapter 1 members</span>
+                        <span id="statChapter1" class="font-serif-display text-base sm:text-lg font-semibold text-pastoral-700 dark:text-emerald-400 mt-0.5 block">0</span>
                     </div>
-                    <div class="stat-card bg-white dark:bg-slate-800/80 p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs">
-                        <span class="block text-[10px] font-semibold text-slate-400 dark:text-slate-500">Chapter 2 members</span>
-                        <span id="statChapter2" class="font-serif-display text-lg font-semibold text-pastoral-700 dark:text-emerald-400 mt-0.5 block">0</span>
+                    <div class="stat-card bg-white dark:bg-slate-800/80 p-2 sm:p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-tight">Chapter 2 members</span>
+                        <span id="statChapter2" class="font-serif-display text-base sm:text-lg font-semibold text-pastoral-700 dark:text-emerald-400 mt-0.5 block">0</span>
                     </div>
                 </div>
 
@@ -402,18 +220,18 @@
                 </div>
 
                 <!-- Finance summary cards -->
-                <div class="grid grid-cols-3 gap-3 mb-5">
-                    <div class="bg-pastoral-50 dark:bg-slate-900/60 p-3 rounded-xl border border-pastoral-100 dark:border-slate-700">
-                        <span class="block text-[10px] font-semibold text-slate-400">Total Funds In</span>
-                        <span id="financeTotalIn" class="font-serif-display text-base font-semibold text-emerald-600 mt-0.5 block">₱0.00</span>
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
+                    <div class="bg-pastoral-50 dark:bg-slate-900/60 p-2 sm:p-3 rounded-xl border border-pastoral-100 dark:border-slate-700 overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 leading-tight">Total Funds In</span>
+                        <span id="financeTotalIn" class="font-serif-display text-sm sm:text-base font-semibold text-emerald-600 mt-0.5 block truncate">₱0.00</span>
                     </div>
-                    <div class="bg-pastoral-50 dark:bg-slate-900/60 p-3 rounded-xl border border-pastoral-100 dark:border-slate-700">
-                        <span class="block text-[10px] font-semibold text-slate-400">Total Expenses</span>
-                        <span id="financeTotalOut" class="font-serif-display text-base font-semibold text-red-500 mt-0.5 block">₱0.00</span>
+                    <div class="bg-pastoral-50 dark:bg-slate-900/60 p-2 sm:p-3 rounded-xl border border-pastoral-100 dark:border-slate-700 overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 leading-tight">Total Expenses</span>
+                        <span id="financeTotalOut" class="font-serif-display text-sm sm:text-base font-semibold text-red-500 mt-0.5 block truncate">₱0.00</span>
                     </div>
-                    <div class="bg-pastoral-50 dark:bg-slate-900/60 p-3 rounded-xl border border-pastoral-100 dark:border-slate-700">
-                        <span class="block text-[10px] font-semibold text-slate-400">Current Balance</span>
-                        <span id="financeBalance" class="font-serif-display text-base font-semibold text-pastoral-800 dark:text-emerald-400 mt-0.5 block">₱0.00</span>
+                    <div class="bg-pastoral-50 dark:bg-slate-900/60 p-2 sm:p-3 rounded-xl border border-pastoral-100 dark:border-slate-700 overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 leading-tight">Current Balance</span>
+                        <span id="financeBalance" class="font-serif-display text-sm sm:text-base font-semibold text-pastoral-800 dark:text-emerald-400 mt-0.5 block truncate">₱0.00</span>
                     </div>
                 </div>
 
@@ -476,17 +294,21 @@
                             </div>
                             <button onclick="clearHistoryLogs()" class="text-[10px] text-red-500 hover:text-red-700 font-semibold underline shrink-0">Clear</button>
                         </div>
-                        <div id="historyLogContainer" class="border border-pastoral-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 max-h-[420px] overflow-y-auto p-2 space-y-1.5 text-[11px]"></div>
+                        <div id="historyLogContainer" class="border border-pastoral-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 max-h-[420px] overflow-y-auto text-[11px]"></div>
                     </div>
 
                     <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <div>
+                        <div class="flex justify-between items-center mb-2 gap-2">
+                            <div class="min-w-0">
                                 <h2 class="font-serif-display text-base font-semibold text-slate-800 dark:text-slate-100">Saved backups</h2>
+                                <p class="text-[10px] text-slate-400 leading-tight">Snapshots stored in this browser — restore any of them with one tap</p>
                             </div>
-                            <button onclick="createManualBackup()" class="text-[10px] text-pastoral-700 dark:text-emerald-400 hover:text-pastoral-900 font-semibold underline shrink-0">Back up now</button>
+                            <button onclick="createManualBackup()" class="nav-action-btn shrink-0 flex items-center gap-1.5 bg-pastoral-700 hover:bg-pastoral-800 text-white px-3 py-2 rounded-lg text-[11px] font-semibold shadow-sm">
+                                <span>📸</span> Back up now
+                            </button>
                         </div>
                         <div id="backupListContainer" class="border border-pastoral-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 max-h-[420px] overflow-y-auto p-2 space-y-1.5 text-[11px]"></div>
+                        <p class="text-[10px] text-slate-400 mt-2">Use the <span class="font-semibold text-slate-500 dark:text-slate-400">Export</span> / <span class="font-semibold text-slate-500 dark:text-slate-400">Import</span> buttons in the top navigation bar to download a full JSON backup file or restore one from a file.</p>
                     </div>
                 </div>
             </div>
@@ -504,15 +326,33 @@
         <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-xl w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden transform transition-all">
             <div class="bg-pastoral-800 text-white px-6 py-3.5 flex justify-between items-center font-semibold text-xs">
                 <span id="modalMemberName" class="tracking-wide">Member Formations</span>
-                <button onclick="closeFormationModal()" class="text-pastoral-200 hover:text-white font-bold text-base transition">✕</button>
+                <button onclick="requestCloseFormationModal()" class="text-pastoral-200 hover:text-white font-bold text-base transition">✕</button>
             </div>
             <div class="p-4 bg-pastoral-50 dark:bg-slate-900/50 border-b border-pastoral-100 dark:border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-slate-600 dark:text-slate-300" id="modalMemberInfo"></div>
             <div class="p-6 max-h-[55vh] overflow-y-auto">
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3 font-medium">Click the button to instantly complete or reset talks:</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3 font-medium">Tap a button to mark a track complete or reset it, then save when you're done:</p>
                 <div id="modalFormationList" class="space-y-2"></div>
             </div>
-            <div class="bg-pastoral-50 dark:bg-slate-900 px-6 py-3 border-t border-pastoral-100 dark:border-slate-700 flex justify-end">
-                <button onclick="closeFormationModal()" class="bg-pastoral-800 hover:bg-pastoral-900 text-white px-5 py-2 rounded-lg font-medium text-xs shadow-sm transition">Done</button>
+            <div class="bg-pastoral-50 dark:bg-slate-900 px-6 py-3 border-t border-pastoral-100 dark:border-slate-700 flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
+                <span id="formationDirtyBadge" class="hidden text-[10px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 mr-auto sm:mr-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span> Unsaved changes
+                </span>
+                <button onclick="requestCloseFormationModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-5 py-2 rounded-lg font-medium text-xs shadow-sm transition min-h-[42px]">Cancel</button>
+                <button onclick="saveAndCloseFormationModal()" class="w-full sm:w-auto bg-pastoral-800 hover:bg-pastoral-900 text-white px-5 py-2 rounded-lg font-medium text-xs shadow-sm transition min-h-[42px]">Save &amp; Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unsaved Formation Changes Modal -->
+    <div id="formationUnsavedModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-[60] p-4">
+        <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden p-6 text-center">
+            <div class="mx-auto bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-3">⚠️</div>
+            <h3 class="font-serif-display text-sm font-semibold mb-1">Save your changes?</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-5">You marked some formations complete or reset but haven't saved yet. Save before closing, or discard these changes?</p>
+            <div class="flex flex-col gap-2">
+                <button onclick="saveFormationChangesFromPrompt()" class="w-full bg-pastoral-800 hover:bg-pastoral-900 text-white py-2.5 rounded-lg font-semibold transition min-h-[42px]">Save changes</button>
+                <button onclick="discardFormationChangesAndClose()" class="w-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 py-2.5 rounded-lg font-semibold transition min-h-[42px]">Discard changes</button>
+                <button onclick="cancelFormationUnsavedPrompt()" class="w-full text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 py-2 rounded-lg font-medium text-[11px] transition">Keep editing</button>
             </div>
         </div>
     </div>
@@ -576,9 +416,9 @@
                     <div id="addFormFormationSection" class="hidden mt-2 space-y-1.5 max-h-56 overflow-y-auto pr-1 pl-0.5"></div>
                 </div>
 
-                <div class="pt-3 flex justify-end gap-2">
-                    <button type="button" onclick="closeAddModal()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg font-medium transition">Cancel</button>
-                    <button type="submit" class="glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition">Save member</button>
+                <div class="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2">
+                    <button type="button" onclick="closeAddModal()" class="w-full sm:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg font-medium transition min-h-[42px]">Cancel</button>
+                    <button type="submit" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition min-h-[42px]">Save member</button>
                 </div>
             </form>
         </div>
@@ -610,9 +450,9 @@
                     <label class="block font-semibold mb-1">Date</label>
                     <input type="date" id="transDate" required class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900">
                 </div>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeAddTransactionModal()" class="bg-slate-200 dark:bg-slate-700 px-3 py-1.5 rounded-lg">Cancel</button>
-                    <button type="submit" class="glow-btn bg-pastoral-800 text-white px-4 py-1.5 rounded-lg">Save</button>
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAddTransactionModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-medium transition min-h-[42px]">Cancel</button>
+                    <button type="submit" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-medium transition min-h-[42px]">Save</button>
                 </div>
             </form>
         </div>
@@ -644,9 +484,9 @@
                         </select>
                     </div>
                 </div>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeAddEventModal()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-4 py-2 rounded-lg font-semibold transition">Cancel</button>
-                    <button type="submit" id="addEventSubmitBtn" class="glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-semibold transition">Add Event</button>
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAddEventModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-4 py-2 rounded-lg font-semibold transition min-h-[42px]">Cancel</button>
+                    <button type="submit" id="addEventSubmitBtn" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-semibold transition min-h-[42px]">Add Event</button>
                 </div>
             </form>
         </div>
@@ -669,12 +509,12 @@
     <!-- Confirm Deletion Modal -->
     <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-[60] p-4">
         <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden p-6 text-center">
-            <div class="mx-auto bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-3">⚠️</div>
-            <h3 class="font-serif-display text-sm font-semibold mb-1">Confirm Deletion</h3>
+            <div id="confirmModalIconWrap" class="mx-auto bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-3">⚠️</div>
+            <h3 id="confirmModalTitle" class="font-serif-display text-sm font-semibold mb-1">Confirm Deletion</h3>
             <p id="confirmModalMessage" class="text-[11px] text-slate-500 dark:text-slate-400 mb-5">Are you sure you want to delete this?</p>
             <div class="flex gap-2">
                 <button onclick="closeConfirmModal()" class="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 py-2.5 rounded-lg font-semibold transition min-h-[42px]">Cancel</button>
-                <button id="confirmModalActionBtn" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-semibold transition min-h-[42px]">Yes, delete</button>
+                <button id="confirmModalActionBtn" class="flex-1 py-2.5 rounded-lg font-semibold transition min-h-[42px] bg-red-600 hover:bg-red-700 text-white">Yes, delete</button>
             </div>
         </div>
     </div>
@@ -683,1108 +523,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
-    <script>
-        // --- Security PIN & Auth Protection ---
-        const CORRECT_PIN = "2026"; // Default PIN
-
-        function checkSession() {
-            if (sessionStorage.getItem('yfc_authenticated') === 'true') {
-                document.getElementById('pinModal').classList.add('hidden');
-            } else {
-                document.getElementById('pinModal').classList.remove('hidden');
-            }
-        }
-
-        function verifyPin(e) {
-            e.preventDefault();
-            const input = document.getElementById('pinInput').value;
-            if (input === CORRECT_PIN) {
-                sessionStorage.setItem('yfc_authenticated', 'true');
-                document.getElementById('pinModal').classList.add('hidden');
-                document.getElementById('pinError').classList.add('hidden');
-            } else {
-                document.getElementById('pinError').classList.remove('hidden');
-            }
-        }
-
-        function logoutSession() {
-            sessionStorage.removeItem('yfc_authenticated');
-            document.getElementById('pinInput').value = '';
-            checkSession();
-        }
-
-        checkSession();
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAf36moKYjsjKNGX23bVoI0k-caXYf0lMI",
-            authDomain: "yfc-pastoral-tracker.firebaseapp.com",
-            projectId: "yfc-pastoral-tracker",
-            storageBucket: "yfc-pastoral-tracker.firebasestorage.app",
-            messagingSenderId: "693014881382",
-            appId: "1:693014881382:web:80180c17fc2d9e913ef9a7",
-            measurementId: "G-7M6DM05TVK"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        const formationsData = [
-            { code: "CO", label: "COVENANT ORIENTATION", talks: 4 },
-            { code: "FC", label: "FAMILY CULTURE", talks: 3 },
-            { code: "YP", label: "YOUTH POWER", talks: 2 },
-            { code: "DC", label: "DISCOVERY CAMP", talks: 5 },
-            { code: "100F", label: "100% FREE", talks: 3 },
-            { code: "PH", label: "PARENTS HONORING NIGHT", talks: 1 },
-            { code: "SFTN", label: "STAKE FOR THE NATION", talks: 3 },
-            { code: "BW", label: "BEST WEEKEND", talks: 2 },
-            { code: "CS", label: "CHURCH AND SACRAMENTS", talks: 4 },
-            { code: "VR", label: "VOCATION RECOLLECTION", talks: 3 },
-            { code: "YA", label: "YOUTH ADVOCATE", talks: 2 }
-        ];
-
-        let members = [];
-        let financeTransactions = [];
-        let calendarEvents = [];
-        const HISTORY_KEY = 'yfc_simple_tracker_history_v15';
-        const BACKUPS_KEY = 'yfc_simple_tracker_backups_v15';
-        let activityHistory = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-        let backups = JSON.parse(localStorage.getItem(BACKUPS_KEY)) || [];
-        let currentActiveMemberId = null;
-
-        let currentCalendarDate = new Date();
-
-        // --- Pagination state ---
-        const MEMBERS_PER_PAGE = 10;
-        const FINANCE_PER_PAGE = 10;
-        let memberPage = 1;
-        let financePage = 1;
-
-        // --- Add/Edit member modal: inline formation progress state ---
-        let addFormProgress = {};
-
-        // Dark Mode
-        if (localStorage.getItem('yfc_theme') === 'dark' || (!('yfc_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-
-        function toggleDarkMode() {
-            if (document.documentElement.classList.contains('dark')) {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('yfc_theme', 'light');
-            } else {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('yfc_theme', 'dark');
-            }
-        }
-
-        // --- Color Theme Picker (background/accent color — independent of dark mode) ---
-        const COLOR_THEME_KEY = 'yfc_color_theme';
-        const colorThemes = {
-            green:  { name: 'Forest Green', swatch: '#1A4530', vals: { p50:'243 247 241', p100:'227 236 223', p200:'196 217 188', p600:'46 107 69',  p700:'35 87 58',  p800:'26 69 48',  p900:'18 49 32',  p950:'12 36 23' } },
-            pink:   { name: 'Pink',         swatch: '#db2777', vals: { p50:'253 242 248', p100:'252 231 243', p200:'251 207 232', p600:'219 39 119', p700:'190 24 93', p800:'157 23 77', p900:'131 24 67', p950:'80 7 36' } },
-            rose:   { name: 'Rose',         swatch: '#e11d48', vals: { p50:'255 241 242', p100:'255 228 230', p200:'254 205 211', p600:'225 29 72',  p700:'190 18 60', p800:'159 18 57', p900:'136 19 55', p950:'76 5 25' } },
-            blue:   { name: 'Ocean Blue',   swatch: '#2563eb', vals: { p50:'239 246 255', p100:'219 234 254', p200:'191 219 254', p600:'37 99 235',  p700:'29 78 216', p800:'30 64 175', p900:'30 58 138', p950:'23 37 84' } },
-            purple: { name: 'Purple',       swatch: '#9333ea', vals: { p50:'250 245 255', p100:'243 232 255', p200:'233 213 255', p600:'147 51 234', p700:'126 34 206', p800:'107 33 168', p900:'88 28 135', p950:'59 7 100' } },
-            teal:   { name: 'Teal',         swatch: '#0d9488', vals: { p50:'240 253 250', p100:'204 251 241', p200:'153 246 228', p600:'13 148 136', p700:'15 118 110', p800:'17 94 89',  p900:'19 78 74',  p950:'4 47 46' } },
-            orange: { name: 'Sunset Orange',swatch: '#ea580c', vals: { p50:'255 247 237', p100:'255 237 213', p200:'254 215 170', p600:'234 88 12', p700:'194 65 12', p800:'154 52 18', p900:'124 45 18', p950:'67 20 7' } },
-            indigo: { name: 'Indigo',       swatch: '#4f46e5', vals: { p50:'238 242 255', p100:'224 231 255', p200:'199 210 254', p600:'79 70 229', p700:'67 56 202', p800:'55 48 163', p900:'49 46 129', p950:'30 27 75' } },
-            red:    { name: 'Red',          swatch: '#dc2626', vals: { p50:'254 242 242', p100:'254 226 226', p200:'254 202 202', p600:'220 38 38', p700:'185 28 28', p800:'153 27 27', p900:'127 29 29', p950:'69 10 10' } }
-        };
-
-        function applyColorTheme(key, save) {
-            const theme = colorThemes[key] || colorThemes.green;
-            const root = document.documentElement.style;
-            Object.entries(theme.vals).forEach(([varName, val]) => root.setProperty(`--${varName}`, val));
-            if (save) localStorage.setItem(COLOR_THEME_KEY, key);
-            document.querySelectorAll('.swatch-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.themeKey === key);
-            });
-        }
-
-        function buildThemeSwatchGrid() {
-            const grid = document.getElementById('themeSwatchGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
-            const savedKey = localStorage.getItem(COLOR_THEME_KEY) || 'green';
-            Object.entries(colorThemes).forEach(([key, theme]) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'swatch-btn' + (key === savedKey ? ' active' : '');
-                btn.style.backgroundColor = theme.swatch;
-                btn.title = theme.name;
-                btn.dataset.themeKey = key;
-                btn.onclick = () => applyColorTheme(key, true);
-                grid.appendChild(btn);
-            });
-        }
-
-        function toggleThemePicker() {
-            const dropdown = document.getElementById('themePickerDropdown');
-            dropdown.classList.toggle('hidden');
-        }
-
-        document.addEventListener('click', function (e) {
-            const dropdown = document.getElementById('themePickerDropdown');
-            const btn = document.getElementById('themePickerBtn');
-            if (!dropdown || dropdown.classList.contains('hidden')) return;
-            if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
-                dropdown.classList.add('hidden');
-            }
-        });
-
-        // Apply saved (or default) color theme immediately on load
-        applyColorTheme(localStorage.getItem(COLOR_THEME_KEY) || 'green', false);
-        buildThemeSwatchGrid();
-
-        // --- Confirm Deletion Modal ---
-        let _confirmDeleteCallback = null;
-        function showConfirmModal(message, callback) {
-            document.getElementById('confirmModalMessage').innerText = message;
-            _confirmDeleteCallback = callback;
-            document.getElementById('confirmModal').classList.remove('hidden');
-            document.getElementById('confirmModal').classList.add('flex');
-        }
-        function closeConfirmModal() {
-            document.getElementById('confirmModal').classList.add('hidden');
-            document.getElementById('confirmModal').classList.remove('flex');
-            _confirmDeleteCallback = null;
-        }
-        document.getElementById('confirmModalActionBtn').addEventListener('click', function () {
-            if (_confirmDeleteCallback) _confirmDeleteCallback();
-            closeConfirmModal();
-        });
-
-        function updateLiveClock() {
-            const now = new Date();
-            const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-            const clockEl = document.getElementById('clockText');
-            if (clockEl) clockEl.innerText = now.toLocaleDateString('en-US', options);
-        }
-        setInterval(updateLiveClock, 1000);
-        updateLiveClock();
-
-        // --- Real-time Sync Listeners (Members, Finance, Calendar) ---
-        function initRealtimeSync() {
-            // Members Sync
-            db.collection("members").onSnapshot((snapshot) => {
-                members = [];
-                snapshot.forEach((doc) => {
-                    members.push({ firebaseId: doc.id, ...doc.data() });
-                });
-                renderTable();
-                renderFormationSummary();
-                updateLastModifiedTime();
-            }, (error) => {
-                console.error("Error getting members: ", error);
-                document.getElementById('lastUpdated').innerText = "Cloud sync error!";
-            });
-
-            // Finance Sync
-            db.collection("finance").onSnapshot((snapshot) => {
-                financeTransactions = [];
-                snapshot.forEach((doc) => {
-                    financeTransactions.push({ firebaseId: doc.id, ...doc.data() });
-                });
-                renderFinanceTracker();
-            }, (error) => {
-                console.error("Error getting finance: ", error);
-            });
-
-            // Calendar Sync
-            db.collection("calendar").onSnapshot((snapshot) => {
-                calendarEvents = [];
-                snapshot.forEach((doc) => {
-                    calendarEvents.push({ firebaseId: doc.id, ...doc.data() });
-                });
-                renderCalendar();
-            }, (error) => {
-                console.error("Error getting calendar: ", error);
-            });
-        }
-
-        async function saveMemberToCloud(memberData) {
-            try {
-                if (memberData.firebaseId) {
-                    const id = memberData.firebaseId;
-                    delete memberData.firebaseId;
-                    await db.collection("members").doc(id).set(memberData);
-                } else {
-                    await db.collection("members").add(memberData);
-                }
-            } catch (e) {
-                console.error("Error writing member: ", e);
-                alert("Error saving to cloud database.");
-            }
-        }
-
-        async function deleteMemberFromCloud(firebaseId) {
-            try {
-                await db.collection("members").doc(firebaseId).delete();
-            } catch (e) {
-                console.error("Error removing member: ", e);
-            }
-        }
-
-        function logActivity(description) {
-            const now = new Date();
-            const timestamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
-            activityHistory.unshift({ time: timestamp, desc: description });
-            if (activityHistory.length > 50) activityHistory.pop();
-            localStorage.setItem(HISTORY_KEY, JSON.stringify(activityHistory));
-            renderHistoryLogs();
-        }
-
-        function updateLastModifiedTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const dateString = now.toLocaleDateString();
-            const el = document.getElementById('lastUpdated');
-            if (el) el.innerText = `Cloud synced: ${dateString} at ${timeString}`;
-        }
-
-        function renderHistoryLogs() {
-            const container = document.getElementById('historyLogContainer');
-            if (!container) return;
-            container.innerHTML = '';
-            if (activityHistory.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 italic p-3">No recent activity recorded.</p>`;
-                return;
-            }
-            activityHistory.forEach(log => {
-                const div = document.createElement('div');
-                div.className = "flex items-center justify-between bg-pastoral-50/60 dark:bg-slate-900/50 px-3 py-1.5 rounded-lg border border-pastoral-100 dark:border-slate-700 text-[11px]";
-                div.innerHTML = `<span class="text-slate-700 dark:text-slate-300">🔹 ${log.desc}</span><span class="text-[10px] text-slate-400 font-mono shrink-0 ml-2">${log.time}</span>`;
-                container.appendChild(div);
-            });
-        }
-
-        function renderBackupList() {
-            const container = document.getElementById('backupListContainer');
-            if (!container) return;
-            container.innerHTML = '';
-            if (backups.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 italic p-3">Export/backup tools ready.</p>`;
-                return;
-            }
-            backups.forEach((b) => {
-                const div = document.createElement('div');
-                div.className = "flex items-center justify-between gap-2 bg-pastoral-50/60 dark:bg-slate-900/50 px-3 py-2 rounded-lg border border-pastoral-100 dark:border-slate-700 text-[11px]";
-                div.innerHTML = `<div><span class="block font-semibold text-slate-700 dark:text-slate-200">${b.label} • ${b.data.length} members</span><span class="block text-[10px] text-slate-400 font-mono">${b.time}</span></div>`;
-                container.appendChild(div);
-            });
-        }
-
-        function clearHistoryLogs() {
-            if (confirm("Clear activity history logs?")) {
-                activityHistory = [];
-                localStorage.setItem(HISTORY_KEY, JSON.stringify(activityHistory));
-                renderHistoryLogs();
-            }
-        }
-
-        function calculateAge(birthdayStr) {
-            if (!birthdayStr) return 'N/A';
-            const birthDate = new Date(birthdayStr);
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-            return `${age} yrs old`;
-        }
-
-        function setTabButtonState(btn, active) {
-            if (active) {
-                btn.className = "tab-pill tab-glow flex-1 sm:flex-none whitespace-nowrap px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5 bg-pastoral-800 text-white shadow-sm";
-            } else {
-                btn.className = "tab-pill flex-1 sm:flex-none whitespace-nowrap px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-pastoral-800 dark:hover:text-emerald-400";
-            }
-        }
-
-        function switchTab(tab) {
-            const btns = {
-                members: document.getElementById('tabBtnMembers'),
-                formations: document.getElementById('tabBtnFormations'),
-                finance: document.getElementById('tabBtnFinance'),
-                calendar: document.getElementById('tabBtnCalendar'),
-                history: document.getElementById('tabBtnHistory')
-            };
-            const contents = {
-                members: document.getElementById('tabContentMembers'),
-                formations: document.getElementById('tabContentFormations'),
-                finance: document.getElementById('tabContentFinance'),
-                calendar: document.getElementById('tabContentCalendar'),
-                history: document.getElementById('tabContentHistory')
-            };
-
-            Object.keys(btns).forEach(key => {
-                setTabButtonState(btns[key], key === tab);
-                contents[key].classList.toggle('hidden', key !== tab);
-            });
-
-            if (tab === 'members') renderTable();
-            if (tab === 'formations') renderFormationSummary();
-            if (tab === 'finance') renderFinanceTracker();
-            if (tab === 'calendar') renderCalendar();
-            if (tab === 'history') { renderHistoryLogs(); renderBackupList(); }
-        }
-
-        // --- Generic pagination bar builder ---
-        // Renders a single, centered control: [‹ Prev] [Page X of Y — A–B of Z] [Next ›]
-        // Everything lives in one row at the bottom of the table — nothing is split to opposite sides.
-        function buildPaginationControls(containerId, totalItems, perPage, currentPage, onPageChange) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            container.innerHTML = '';
-            if (totalItems === 0) return;
-
-            const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
-            const startItem = (currentPage - 1) * perPage + 1;
-            const endItem = Math.min(currentPage * perPage, totalItems);
-
-            const wrap = document.createElement('div');
-            wrap.className = "inline-flex items-center gap-1 bg-pastoral-50 dark:bg-slate-900/60 border border-pastoral-100 dark:border-slate-700 rounded-full p-1";
-
-            const navBtnClass = "flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-700 hover:shadow-xs transition shrink-0";
-
-            const prevBtn = document.createElement('button');
-            prevBtn.type = 'button';
-            prevBtn.innerHTML = '‹';
-            prevBtn.title = 'Previous page';
-            prevBtn.disabled = currentPage <= 1;
-            prevBtn.className = navBtnClass;
-            prevBtn.onclick = () => onPageChange(currentPage - 1);
-            wrap.appendChild(prevBtn);
-
-            const pageLabel = document.createElement('span');
-            pageLabel.className = "px-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap";
-            pageLabel.innerHTML = `Page ${currentPage} of ${totalPages} <span class="text-slate-400 font-normal">(${startItem}–${endItem} of ${totalItems})</span>`;
-            wrap.appendChild(pageLabel);
-
-            const nextBtn = document.createElement('button');
-            nextBtn.type = 'button';
-            nextBtn.innerHTML = '›';
-            nextBtn.title = 'Next page';
-            nextBtn.disabled = currentPage >= totalPages;
-            nextBtn.className = navBtnClass;
-            nextBtn.onclick = () => onPageChange(currentPage + 1);
-            wrap.appendChild(nextBtn);
-
-            container.appendChild(wrap);
-        }
-
-        // --- Finance Tracker Functions (Cloud Synced) ---
-        function openAddTransactionModal() {
-            document.getElementById('addTransactionModal').classList.remove('hidden');
-            document.getElementById('addTransactionModal').classList.add('flex');
-            document.getElementById('transDate').value = new Date().toISOString().slice(0, 10);
-        }
-
-        function closeAddTransactionModal() {
-            document.getElementById('addTransactionModal').classList.add('hidden');
-            document.getElementById('addTransactionModal').classList.remove('flex');
-        }
-
-        async function saveTransaction(e) {
-            e.preventDefault();
-            const desc = document.getElementById('transDesc').value;
-            const type = document.getElementById('transType').value;
-            const amount = parseFloat(document.getElementById('transAmount').value);
-            const date = document.getElementById('transDate').value;
-
-            const newTrans = { desc, type, amount, date };
-
-            try {
-                await db.collection("finance").add(newTrans);
-                logActivity(`Added finance transaction: ${desc} (₱${amount})`);
-                financePage = 1;
-                closeAddTransactionModal();
-            } catch (err) {
-                console.error("Error saving transaction: ", err);
-                alert("Error saving transaction to cloud.");
-            }
-        }
-
-        function deleteTransaction(firebaseId) {
-            const t = financeTransactions.find(x => x.firebaseId === firebaseId);
-            const label = t ? `"${t.desc}" (₱${t.amount.toFixed(2)})` : 'this transaction';
-            showConfirmModal(`Are you sure you want to delete ${label}? This cannot be undone.`, async () => {
-                try {
-                    await db.collection("finance").doc(firebaseId).delete();
-                    logActivity(`Deleted finance transaction: ${t ? t.desc : firebaseId}`);
-                } catch (err) {
-                    console.error("Error deleting transaction: ", err);
-                }
-            });
-        }
-
-        function goToFinancePage(page) {
-            financePage = page;
-            renderFinanceTracker();
-        }
-
-        function renderFinanceTracker() {
-            const tbody = document.getElementById('financeTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            let totalIn = 0;
-            let totalOut = 0;
-            financeTransactions.forEach(t => {
-                if (t.type === 'In') totalIn += t.amount; else totalOut += t.amount;
-            });
-
-            const sorted = [...financeTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-            const totalPages = Math.max(1, Math.ceil(sorted.length / FINANCE_PER_PAGE));
-            if (financePage > totalPages) financePage = totalPages;
-            if (financePage < 1) financePage = 1;
-
-            const pageItems = sorted.slice((financePage - 1) * FINANCE_PER_PAGE, financePage * FINANCE_PER_PAGE);
-
-            if (sorted.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">No financial transactions recorded.</td></tr>`;
-            }
-
-            pageItems.forEach((t, idx) => {
-                const rowNum = (financePage - 1) * FINANCE_PER_PAGE + idx + 1;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td data-label="#" class="py-3.5 px-4 text-center text-slate-400 font-mono">${rowNum}</td>
-                    <td data-label="Date" class="py-3.5 px-4">${t.date}</td>
-                    <td data-label="Description" class="py-3.5 px-4 font-semibold">${t.desc}</td>
-                    <td data-label="Type" class="py-3.5 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.type === 'In' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${t.type === 'In' ? 'Funds In' : 'Expense'}</span></td>
-                    <td data-label="Amount" class="py-3.5 px-4 text-right font-mono font-bold ${t.type === 'In' ? 'text-emerald-600' : 'text-red-500'}">₱${t.amount.toFixed(2)}</td>
-                    <td data-label="Action" class="py-3.5 px-4 text-center whitespace-nowrap"><button onclick="deleteTransaction('${t.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold w-6 h-6 inline-flex items-center justify-center transition">✕</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('financeTotalIn').innerText = `₱${totalIn.toFixed(2)}`;
-            document.getElementById('financeTotalOut').innerText = `₱${totalOut.toFixed(2)}`;
-            document.getElementById('financeBalance').innerText = `₱${(totalIn - totalOut).toFixed(2)}`;
-
-            buildPaginationControls('financePagination', sorted.length, FINANCE_PER_PAGE, financePage, goToFinancePage);
-        }
-
-        // --- Calendar Functions (Cloud Synced) ---
-        const eventCategories = {
-            general:   { label: 'General',   dot: 'bg-slate-400',   pill: 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200' },
-            meeting:   { label: 'Meeting',    dot: 'bg-blue-500',    pill: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300' },
-            formation: { label: 'Formation',  dot: 'bg-emerald-500', pill: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300' },
-            birthday:  { label: 'Birthday',   dot: 'bg-pink-500',    pill: 'bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300' },
-            deadline:  { label: 'Deadline',   dot: 'bg-red-500',     pill: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300' }
-        };
-        let _dayDetailDateStr = null;
-
-        function todayDateStr() {
-            const n = new Date();
-            return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
-        }
-
-        function changeMonth(direction) {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
-            renderCalendar();
-        }
-
-        function goToToday() {
-            currentCalendarDate = new Date();
-            renderCalendar();
-        }
-
-        function openAddEventModal(prefillDate) {
-            document.getElementById('editEventId').value = '';
-            document.getElementById('addEventModalTitle').innerText = 'Add Calendar Event';
-            document.getElementById('addEventSubmitBtn').innerText = 'Add Event';
-            document.getElementById('addEventModal').classList.remove('hidden');
-            document.getElementById('addEventModal').classList.add('flex');
-            document.getElementById('eventDate').value = prefillDate || new Date().toISOString().slice(0, 10);
-            document.getElementById('eventCategory').value = 'general';
-            document.getElementById('eventTitle').value = '';
-            document.getElementById('eventTitle').focus();
-        }
-
-        function openAddEventModalForDay() {
-            closeDayDetailModal();
-            openAddEventModal(_dayDetailDateStr);
-        }
-
-        // Open the same modal pre-filled with an existing event's details so its
-        // date, title, or category can be edited in place (updates the doc, doesn't duplicate it).
-        function openEditEventModal(firebaseId) {
-            const ev = calendarEvents.find(x => x.firebaseId === firebaseId);
-            if (!ev) return;
-            closeDayDetailModal();
-            document.getElementById('editEventId').value = firebaseId;
-            document.getElementById('addEventModalTitle').innerText = 'Edit Calendar Event';
-            document.getElementById('addEventSubmitBtn').innerText = 'Save Changes';
-            document.getElementById('eventTitle').value = ev.title || '';
-            document.getElementById('eventDate').value = ev.date || new Date().toISOString().slice(0, 10);
-            document.getElementById('eventCategory').value = ev.category || 'general';
-            document.getElementById('addEventModal').classList.remove('hidden');
-            document.getElementById('addEventModal').classList.add('flex');
-            document.getElementById('eventTitle').focus();
-        }
-
-        function closeAddEventModal() {
-            document.getElementById('addEventModal').classList.add('hidden');
-            document.getElementById('addEventModal').classList.remove('flex');
-            document.getElementById('editEventId').value = '';
-        }
-
-        async function saveCalendarEvent(e) {
-            e.preventDefault();
-            const editId = document.getElementById('editEventId').value;
-            const title = document.getElementById('eventTitle').value;
-            const date = document.getElementById('eventDate').value;
-            const category = document.getElementById('eventCategory').value;
-
-            const eventData = { title, date, category };
-
-            try {
-                if (editId) {
-                    await db.collection("calendar").doc(editId).update(eventData);
-                    logActivity(`Edited calendar event: ${title} — now on ${date}`);
-                } else {
-                    await db.collection("calendar").add(eventData);
-                    logActivity(`Added calendar event: ${title} on ${date}`);
-                }
-                closeAddEventModal();
-                // If the day detail modal is showing the affected date, refresh it live.
-                if (document.getElementById('dayDetailModal').classList.contains('flex') && _dayDetailDateStr === date) {
-                    renderDayDetailList(date);
-                }
-            } catch (err) {
-                console.error("Error saving event: ", err);
-                alert("Error saving event to cloud.");
-            }
-        }
-
-        function deleteCalendarEvent(firebaseId) {
-            const ev = calendarEvents.find(x => x.firebaseId === firebaseId);
-            const label = ev ? `"${ev.title}"` : 'this event';
-            showConfirmModal(`Are you sure you want to delete ${label}? This cannot be undone.`, async () => {
-                try {
-                    await db.collection("calendar").doc(firebaseId).delete();
-                    logActivity(`Deleted calendar event: ${ev ? ev.title : firebaseId}`);
-                    if (document.getElementById('dayDetailModal').classList.contains('flex') && _dayDetailDateStr) {
-                        renderDayDetailList(_dayDetailDateStr);
-                    }
-                } catch (err) {
-                    console.error("Error deleting event: ", err);
-                }
-            });
-        }
-
-        function renderCalendarLegend() {
-            const legend = document.getElementById('calendarLegend');
-            if (!legend) return;
-            legend.innerHTML = Object.values(eventCategories).map(c =>
-                `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full ${c.dot} inline-block"></span>${c.label}</span>`
-            ).join('');
-        }
-
-        function renderCalendar() {
-            const grid = document.getElementById('calendarGrid');
-            const titleEl = document.getElementById('calendarMonthTitle');
-            if (!grid || !titleEl) return;
-            grid.className = "grid grid-cols-7 divide-x divide-y divide-slate-100 dark:divide-slate-700 text-xs compact-mobile";
-            grid.innerHTML = '';
-            renderCalendarLegend();
-
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-            const todayStr = todayDateStr();
-
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            titleEl.innerText = `${monthNames[month]} ${year}`;
-
-            const firstDayIndex = new Date(year, month, 1).getDay();
-            const totalDays = new Date(year, month + 1, 0).getDate();
-
-            for (let i = 0; i < firstDayIndex; i++) {
-                const cell = document.createElement('div');
-                cell.className = "bg-slate-50 dark:bg-slate-900/30 min-h-[90px] opacity-40";
-                grid.appendChild(cell);
-            }
-
-            for (let day = 1; day <= totalDays; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const isToday = dateStr === todayStr;
-                const dayEvents = calendarEvents.filter(ev => ev.date === dateStr);
-
-                const cell = document.createElement('div');
-                cell.className = "day-cell p-2 bg-white dark:bg-slate-800 min-h-[90px] flex flex-col overflow-hidden" + (isToday ? " is-today" : "");
-                cell.onclick = () => openDayDetailModal(dateStr);
-
-                const dayNumberClass = "day-number-badge inline-flex items-center justify-center w-5 h-5 rounded-full font-bold text-slate-500 dark:text-slate-400" + (isToday ? "" : "");
-                const dayHeader = `<div class="${dayNumberClass}">${day}</div>`;
-
-                let pillsHtml = '<div class="event-pill-list space-y-1 mt-1 overflow-hidden">';
-                dayEvents.slice(0, 2).forEach(ev => {
-                    const cat = eventCategories[ev.category] || eventCategories.general;
-                    pillsHtml += `<div class="${cat.pill} px-1.5 py-0.5 rounded text-[10px] truncate font-medium">${ev.title}</div>`;
-                });
-                if (dayEvents.length > 2) {
-                    pillsHtml += `<div class="text-[9px] text-slate-400 font-semibold px-1">+${dayEvents.length - 2} more</div>`;
-                }
-                pillsHtml += '</div>';
-
-                let dotsHtml = '<div class="event-dots hidden gap-1 mt-1 flex-wrap">';
-                dayEvents.slice(0, 4).forEach(ev => {
-                    const cat = eventCategories[ev.category] || eventCategories.general;
-                    dotsHtml += `<span class="w-1.5 h-1.5 rounded-full ${cat.dot} inline-block"></span>`;
-                });
-                dotsHtml += '</div>';
-
-                cell.innerHTML = dayHeader + pillsHtml + dotsHtml;
-                grid.appendChild(cell);
-            }
-        }
-
-        function openDayDetailModal(dateStr) {
-            _dayDetailDateStr = dateStr;
-            const d = new Date(dateStr + 'T00:00:00');
-            const label = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-            document.getElementById('dayDetailTitle').innerText = label;
-            renderDayDetailList(dateStr);
-            document.getElementById('dayDetailModal').classList.remove('hidden');
-            document.getElementById('dayDetailModal').classList.add('flex');
-        }
-
-        function renderDayDetailList(dateStr) {
-            const container = document.getElementById('dayDetailList');
-            const dayEvents = calendarEvents.filter(ev => ev.date === dateStr);
-            if (dayEvents.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 italic text-center py-4">No events on this day yet.</p>`;
-                return;
-            }
-            container.innerHTML = dayEvents.map(ev => {
-                const cat = eventCategories[ev.category] || eventCategories.general;
-                return `<div class="flex items-center justify-between gap-2 p-3 rounded-lg border border-pastoral-100 dark:border-slate-700 bg-pastoral-50/50 dark:bg-slate-900/50">
-                    <div class="min-w-0">
-                        <span class="inline-flex items-center gap-1.5 ${cat.pill} px-2 py-0.5 rounded-full text-[10px] font-bold mb-1">${cat.label}</span>
-                        <p class="font-semibold text-slate-800 dark:text-slate-100 truncate">${ev.title}</p>
-                    </div>
-                    <div class="flex items-center gap-1 shrink-0">
-                        <button onclick="openEditEventModal('${ev.firebaseId}')" class="text-pastoral-700 dark:text-emerald-400 hover:text-pastoral-900 dark:hover:text-emerald-300 font-bold px-2 py-1" title="Edit event">✎</button>
-                        <button onclick="deleteCalendarEvent('${ev.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1" title="Delete event">✕</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function closeDayDetailModal() {
-            document.getElementById('dayDetailModal').classList.add('hidden');
-            document.getElementById('dayDetailModal').classList.remove('flex');
-        }
-
-        function getCompletedFormationsCount(member) {
-            if (!member.progress) return 0;
-            let count = 0;
-            formationsData.forEach(f => {
-                const talksAttended = member.progress[f.code];
-                if (Array.isArray(talksAttended)) {
-                    const attendedCount = talksAttended.filter(Boolean).length;
-                    if (attendedCount === f.talks) count++;
-                }
-            });
-            return count;
-        }
-
-        function handleSearchInput() {
-            const searchInput = document.getElementById('searchInput');
-            const clearBtn = document.getElementById('clearSearchBtn');
-            clearBtn.style.display = searchInput.value.trim().length > 0 ? 'flex' : 'none';
-            memberPage = 1;
-            renderTable();
-        }
-
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('clearSearchBtn').style.display = 'none';
-            memberPage = 1;
-            renderTable();
-        }
-
-        function handleChapterFilterChange() {
-            memberPage = 1;
-            renderTable();
-        }
-
-        function goToMemberPage(page) {
-            memberPage = page;
-            renderTable();
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('memberTableBody');
-            if (!tbody) return;
-            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
-            const chapterVal = document.getElementById('chapterFilter').value;
-            tbody.innerHTML = '';
-
-            const filtered = members.filter(m => {
-                const fullName = `${m.lastName}, ${m.firstName}`.toLowerCase();
-                const nickname = (m.nickname || '').toLowerCase();
-                const matchName = fullName.includes(searchVal) || nickname.includes(searchVal);
-                const matchChapter = chapterVal === "" || m.chapter === chapterVal;
-                return matchName && matchChapter;
-            }).sort((a, b) => a.lastName.localeCompare(b.lastName));
-
-            document.getElementById('statTotalMembers').innerText = members.length;
-            document.getElementById('statChapter1').innerText = members.filter(m => m.chapter === "Chapter 1").length;
-            document.getElementById('statChapter2').innerText = members.filter(m => m.chapter === "Chapter 2").length;
-
-            const totalPages = Math.max(1, Math.ceil(filtered.length / MEMBERS_PER_PAGE));
-            if (memberPage > totalPages) memberPage = totalPages;
-            if (memberPage < 1) memberPage = 1;
-
-            const pageItems = filtered.slice((memberPage - 1) * MEMBERS_PER_PAGE, memberPage * MEMBERS_PER_PAGE);
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">No members found.</td></tr>`;
-                buildPaginationControls('memberPagination', 0, MEMBERS_PER_PAGE, memberPage, goToMemberPage);
-                return;
-            }
-
-            pageItems.forEach((m, idx) => {
-                const rowNum = (memberPage - 1) * MEMBERS_PER_PAGE + idx + 1;
-                const completedCount = getCompletedFormationsCount(m);
-                const formattedName = `${m.lastName}, ${m.firstName}`;
-                const nicknameDisplay = m.nickname ? ` <span class="text-slate-400 font-normal">("${m.nickname}")</span>` : '';
-                const genderBadge = m.gender === 'Female'
-                    ? `<span class="bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 font-bold px-2.5 py-0.5 rounded-full text-[10px]">Female</span>`
-                    : `<span class="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold px-2.5 py-0.5 rounded-full text-[10px]">Male</span>`;
-                const ageText = calculateAge(m.birthday);
-
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-pastoral-50/60 dark:hover:bg-slate-800/80 transition-colors border-b border-slate-100 dark:border-slate-700/50";
-                tr.innerHTML = `
-                    <td data-label="#" class="py-3.5 px-4 text-center text-slate-400 font-mono">${rowNum}</td>
-                    <td data-label="Member name" class="py-3.5 px-4 font-bold text-slate-900 dark:text-white">${formattedName}${nicknameDisplay}</td>
-                    <td data-label="Gender / age" class="py-3.5 px-4"><span class="inline-flex items-center gap-1.5">${genderBadge}<span class="text-[10px] text-slate-400 whitespace-nowrap">${ageText}</span></span></td>
-                    <td data-label="Area / chapter" class="py-3.5 px-4"><span class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold px-2.5 py-1 rounded-full text-[10px]">${m.chapter}</span></td>
-                    <td data-label="Formations done" class="py-3.5 px-4 text-center"><span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 font-bold px-2.5 py-1 rounded-full text-[10px] whitespace-nowrap">${completedCount} / 11 Done</span></td>
-                    <td data-label="Actions" class="py-3.5 px-4 text-center whitespace-nowrap">
-                        <div class="flex flex-nowrap justify-center items-center gap-1.5">
-                            <button onclick="openFormationModal('${m.firebaseId}')" class="shrink-0 bg-pastoral-700 hover:bg-pastoral-800 text-white px-2.5 py-1.5 rounded-lg text-[11px] font-semibold shadow-sm transition active:scale-95">Formation</button>
-                            <button onclick="openEditModal('${m.firebaseId}')" class="shrink-0 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition">Edit</button>
-                            <button onclick="deleteMember('${m.firebaseId}')" class="shrink-0 text-slate-400 hover:text-red-600 font-bold w-6 h-6 flex items-center justify-center transition text-sm" title="Delete">✕</button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            buildPaginationControls('memberPagination', filtered.length, MEMBERS_PER_PAGE, memberPage, goToMemberPage);
-        }
-
-        function renderFormationSummary() {
-            const tbody = document.getElementById('formationSummaryBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            formationsData.forEach(f => {
-                const completedMembers = members.filter(m => {
-                    if (!m.progress || !m.progress[f.code]) return false;
-                    const talksAttended = m.progress[f.code];
-                    const attendedCount = Array.isArray(talksAttended) ? talksAttended.filter(Boolean).length : 0;
-                    return attendedCount === f.talks;
-                });
-                const count = completedMembers.length;
-
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-pastoral-50/60 dark:hover:bg-slate-700/50 transition-colors align-middle";
-                tr.innerHTML = `
-                    <td data-label="Code" class="py-3 px-4 font-extrabold text-pastoral-700 dark:text-emerald-400 font-mono">${f.code}</td>
-                    <td data-label="Formation track" class="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">${f.label}</td>
-                    <td data-label="# talks" class="py-3 px-4 text-center font-mono text-slate-600 dark:text-slate-400">${f.talks}</td>
-                    <td data-label="Completed count" class="py-3 px-4 text-center">
-                        <span class="inline-block bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 font-extrabold px-3 py-1 rounded-full text-[11px]">
-                            ${count} member${count === 1 ? '' : 's'}
-                        </span>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function openFormationModal(firebaseId) {
-            currentActiveMemberId = firebaseId;
-            const member = members.find(m => m.firebaseId === firebaseId);
-            document.getElementById('modalMemberName').innerText = `Formations: ${member.lastName}, ${member.firstName}`;
-
-            document.getElementById('modalMemberInfo').innerHTML = `
-                <div><span class="text-slate-400 block font-bold text-[9px] uppercase">Nickname</span><span class="font-semibold text-slate-800 dark:text-slate-200">${member.nickname || 'N/A'}</span></div>
-                <div><span class="text-slate-400 block font-bold text-[9px] uppercase">Gender</span><span class="font-semibold text-slate-800 dark:text-slate-200">${member.gender || 'N/A'}</span></div>
-                <div><span class="text-slate-400 block font-bold text-[9px] uppercase">Birthday</span><span class="font-semibold text-slate-800 dark:text-slate-200">${member.birthday || 'N/A'}</span></div>
-                <div><span class="text-slate-400 block font-bold text-[9px] uppercase">Chapter</span><span class="font-semibold text-slate-800 dark:text-slate-200">${member.chapter}</span></div>
-            `;
-
-            renderModalFormations();
-            document.getElementById('formationModal').classList.remove('hidden');
-            document.getElementById('formationModal').classList.add('flex');
-        }
-
-        function renderModalFormations() {
-            const member = members.find(m => m.firebaseId === currentActiveMemberId);
-            if (!member) return;
-            const container = document.getElementById('modalFormationList');
-            container.innerHTML = '';
-
-            formationsData.forEach((f, index) => {
-                if (!member.progress) member.progress = {};
-                if (!member.progress[f.code] || !Array.isArray(member.progress[f.code])) {
-                    member.progress[f.code] = new Array(f.talks).fill(false);
-                }
-
-                const talksStatus = member.progress[f.code];
-                const attendedCount = talksStatus.filter(Boolean).length;
-                const isComplete = attendedCount === f.talks;
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = "p-3 border border-pastoral-100 dark:border-slate-700 rounded-lg bg-pastoral-50/50 dark:bg-slate-900 flex items-center justify-between transition-colors";
-                itemDiv.innerHTML = `
-                    <div>
-                        <span class="font-extrabold text-pastoral-700 dark:text-emerald-400">${f.code}</span> - <span class="font-semibold text-slate-800 dark:text-slate-200">${f.label}</span>
-                        <span class="block text-[10px] text-slate-400">${attendedCount} of ${f.talks} talks completed</span>
-                    </div>
-                    <div>
-                        <button onclick="toggleCompleteFormation(${index})" class="px-3 py-1.5 rounded-lg text-[11px] font-bold transition shadow-xs ${isComplete ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200'}">
-                            ${isComplete ? '✓ Completed' : 'Mark complete'}
-                        </button>
-                    </div>
-                `;
-                container.appendChild(itemDiv);
-            });
-        }
-
-        function toggleCompleteFormation(formationIndex) {
-            const member = members.find(m => m.firebaseId === currentActiveMemberId);
-            const f = formationsData[formationIndex];
-
-            const talksStatus = member.progress[f.code];
-            const attendedCount = talksStatus.filter(Boolean).length;
-            const isComplete = attendedCount === f.talks;
-
-            if (isComplete) {
-                member.progress[f.code] = new Array(f.talks).fill(false);
-                logActivity(`Reset formations for ${member.firstName} ${member.lastName} (${f.code})`);
-            } else {
-                member.progress[f.code] = new Array(f.talks).fill(true);
-                logActivity(`Completed formation ${f.code} for ${member.firstName} ${member.lastName}`);
-            }
-
-            saveMemberToCloud({ ...member });
-            renderModalFormations();
-        }
-
-        function closeFormationModal() {
-            document.getElementById('formationModal').classList.add('hidden');
-            document.getElementById('formationModal').classList.remove('flex');
-            renderTable();
-        }
-
-        // --- Inline formation progress editor inside the Add/Edit Member modal ---
-        function toggleAddFormFormationSection() {
-            const section = document.getElementById('addFormFormationSection');
-            const chevron = document.getElementById('addFormFormationChevron');
-            const isHidden = section.classList.contains('hidden');
-            section.classList.toggle('hidden');
-            chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-        }
-
-        function updateAddFormFormationCountLabel() {
-            const label = document.getElementById('addFormFormationCountLabel');
-            if (!label) return;
-            let completed = 0;
-            formationsData.forEach(f => {
-                const arr = addFormProgress[f.code];
-                if (Array.isArray(arr) && arr.filter(Boolean).length === f.talks) completed++;
-            });
-            label.innerText = completed > 0
-                ? `${completed} of ${formationsData.length} formations completed`
-                : 'Optional — set now to skip a step';
-        }
-
-        function renderAddFormFormationList() {
-            const container = document.getElementById('addFormFormationSection');
-            if (!container) return;
-            container.innerHTML = '';
-            updateAddFormFormationCountLabel();
-
-            formationsData.forEach((f, index) => {
-                if (!addFormProgress[f.code] || !Array.isArray(addFormProgress[f.code]) || addFormProgress[f.code].length !== f.talks) {
-                    addFormProgress[f.code] = new Array(f.talks).fill(false);
-                }
-                const talksStatus = addFormProgress[f.code];
-                const attendedCount = talksStatus.filter(Boolean).length;
-                const isComplete = attendedCount === f.talks;
-
-                const row = document.createElement('div');
-                row.className = "flex items-center justify-between gap-2 p-2.5 border border-pastoral-100 dark:border-slate-700 rounded-lg bg-pastoral-50/50 dark:bg-slate-900";
-                row.innerHTML = `
-                    <div class="min-w-0">
-                        <span class="font-extrabold text-pastoral-700 dark:text-emerald-400">${f.code}</span>
-                        <span class="text-slate-600 dark:text-slate-300"> - ${f.label}</span>
-                        <span class="block text-[10px] text-slate-400">${attendedCount} of ${f.talks} talks</span>
-                    </div>
-                    <button type="button" onclick="toggleAddFormFormation(${index})" class="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold transition shadow-xs ${isComplete ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200'}">
-                        ${isComplete ? '✓ Completed' : 'Mark complete'}
-                    </button>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        function toggleAddFormFormation(formationIndex) {
-            const f = formationsData[formationIndex];
-            const talksStatus = addFormProgress[f.code] || new Array(f.talks).fill(false);
-            const attendedCount = talksStatus.filter(Boolean).length;
-            const isComplete = attendedCount === f.talks;
-            addFormProgress[f.code] = new Array(f.talks).fill(!isComplete);
-            renderAddFormFormationList();
-        }
-
-        function resetAddFormFormationSection() {
-            addFormProgress = {};
-            document.getElementById('addFormFormationSection').classList.add('hidden');
-            document.getElementById('addFormFormationChevron').style.transform = 'rotate(0deg)';
-            renderAddFormFormationList();
-        }
-
-        function openAddModal() {
-            document.getElementById('editMemberId').value = '';
-            document.getElementById('addModalTitle').innerText = 'Add New Member';
-            document.querySelector('#addModal form').reset();
-            resetAddFormFormationSection();
-            document.getElementById('addModal').classList.remove('hidden');
-            document.getElementById('addModal').classList.add('flex');
-        }
-
-        function openEditModal(firebaseId) {
-            const member = members.find(m => m.firebaseId === firebaseId);
-            document.getElementById('editMemberId').value = member.firebaseId;
-            document.getElementById('addModalTitle').innerText = 'Edit Member Information';
-            document.getElementById('addLastName').value = member.lastName;
-            document.getElementById('addFirstName').value = member.firstName;
-            document.getElementById('addNickname').value = member.nickname || '';
-            document.getElementById('addGender').value = member.gender || 'Male';
-            document.getElementById('addBirthday').value = member.birthday || '';
-            document.getElementById('addChapter').value = member.chapter;
-
-            addFormProgress = JSON.parse(JSON.stringify(member.progress || {}));
-            document.getElementById('addFormFormationSection').classList.add('hidden');
-            document.getElementById('addFormFormationChevron').style.transform = 'rotate(0deg)';
-            renderAddFormFormationList();
-
-            document.getElementById('addModal').classList.remove('hidden');
-            document.getElementById('addModal').classList.add('flex');
-        }
-
-        function closeAddModal() {
-            document.getElementById('addModal').classList.add('hidden');
-            document.getElementById('addModal').classList.remove('flex');
-        }
-
-        function handleSaveMember(e) {
-            e.preventDefault();
-            const editFirebaseId = document.getElementById('editMemberId').value;
-            const lastName = document.getElementById('addLastName').value.trim();
-            const firstName = document.getElementById('addFirstName').value.trim();
-            const nickname = document.getElementById('addNickname').value.trim();
-            const gender = document.getElementById('addGender').value;
-            const birthday = document.getElementById('addBirthday').value;
-            const chapter = document.getElementById('addChapter').value;
-
-            // Normalize progress arrays to the correct talk counts before saving
-            const progressToSave = {};
-            formationsData.forEach(f => {
-                const existing = addFormProgress[f.code];
-                progressToSave[f.code] = (Array.isArray(existing) && existing.length === f.talks)
-                    ? existing
-                    : new Array(f.talks).fill(false);
-            });
-
-            if (editFirebaseId) {
-                const member = members.find(m => m.firebaseId === editFirebaseId);
-                if (member) {
-                    member.lastName = lastName;
-                    member.firstName = firstName;
-                    member.nickname = nickname;
-                    member.gender = gender;
-                    member.birthday = birthday;
-                    member.chapter = chapter;
-                    member.progress = progressToSave;
-                    logActivity(`Updated info for member: ${lastName}, ${firstName}`);
-                    saveMemberToCloud({ ...member });
-                }
-            } else {
-                const newMember = {
-                    lastName: lastName,
-                    firstName: firstName,
-                    nickname: nickname,
-                    gender: gender,
-                    birthday: birthday,
-                    chapter: chapter,
-                    progress: progressToSave
-                };
-                logActivity(`Added new member: ${lastName}, ${firstName}`);
-                saveMemberToCloud(newMember);
-                memberPage = 1;
-            }
-
-            closeAddModal();
-        }
-
-        function deleteMember(firebaseId) {
-            const member = members.find(m => m.firebaseId === firebaseId);
-            if (!member) return;
-            showConfirmModal(`Are you sure you want to remove ${member.lastName}, ${member.firstName}? This cannot be undone.`, () => {
-                logActivity(`Deleted member: ${member.lastName}, ${member.firstName}`);
-                deleteMemberFromCloud(firebaseId);
-            });
-        }
-
-        function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(members, null, 2));
-            const tempLink = document.createElement('a');
-            tempLink.href = dataStr;
-            tempLink.download = `yfc_cluster_backup_${new Date().toISOString().slice(0,10)}.json`;
-            tempLink.click();
-            logActivity("Exported data backup to JSON file.");
-        }
-
-        function importData(event) {
-            const fileReader = new FileReader();
-            if (event.target.files[0]) {
-                fileReader.readAsText(event.target.files[0], "UTF-8");
-                fileReader.onload = function (e) {
-                    try {
-                        const parsed = JSON.parse(e.target.result);
-                        if (Array.isArray(parsed)) {
-                            parsed.forEach(m => {
-                                delete m.firebaseId;
-                                db.collection("members").add(m);
-                            });
-                            logActivity("Imported batch data into cloud.");
-                            alert("Data successfully imported to cloud!");
-                        } else {
-                            alert("Invalid backup file format.");
-                        }
-                    } catch (err) {
-                        alert("Error reading JSON file.");
-                    }
-                }
-            }
-        }
-
-        // Initialize All Realtime Syncs on load
-        initRealtimeSync();
-        switchTab('members');
-        renderHistoryLogs();
-        renderBackupList();
-    </script>
+    <!-- Separated application logic -->
+    <script src="script.js"></script>
 </body>
 </html>
