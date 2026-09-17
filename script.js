@@ -122,6 +122,8 @@ function applyColorTheme(key, save) {
     document.querySelectorAll('.swatch-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.themeKey === key);
     });
+    const previewLabel = document.getElementById('themePreviewLabel');
+    if (previewLabel) previewLabel.textContent = theme.name;
 }
 
 function buildThemeSwatchGrid() {
@@ -130,20 +132,29 @@ function buildThemeSwatchGrid() {
     grid.innerHTML = '';
     const savedKey = localStorage.getItem(COLOR_THEME_KEY) || 'green';
     Object.entries(colorThemes).forEach(([key, theme]) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'swatch-btn-labeled';
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'swatch-btn' + (key === savedKey ? ' active' : '');
         btn.style.backgroundColor = theme.swatch;
-        btn.title = theme.name;
+        btn.setAttribute('aria-label', theme.name);
         btn.dataset.themeKey = key;
         btn.onclick = () => applyColorTheme(key, true);
-        grid.appendChild(btn);
+        const label = document.createElement('span');
+        label.textContent = theme.name;
+        wrap.appendChild(btn);
+        wrap.appendChild(label);
+        grid.appendChild(wrap);
     });
 }
 
 function toggleThemePicker() {
     const dropdown = document.getElementById('themePickerDropdown');
+    const btn = document.getElementById('themePickerBtn');
+    const nowHidden = !dropdown.classList.contains('hidden');
     dropdown.classList.toggle('hidden');
+    if (btn) btn.setAttribute('aria-expanded', String(!nowHidden));
 }
 
 document.addEventListener('click', function (e) {
@@ -152,6 +163,17 @@ document.addEventListener('click', function (e) {
     if (!dropdown || dropdown.classList.contains('hidden')) return;
     if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
         dropdown.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+    }
+});
+
+document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    const dropdown = document.getElementById('themePickerDropdown');
+    const btn = document.getElementById('themePickerBtn');
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+        if (btn) { btn.setAttribute('aria-expanded', 'false'); btn.focus(); }
     }
 });
 
