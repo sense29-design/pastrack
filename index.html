@@ -2,9 +2,7 @@
 <html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
-    <!-- RESPONSIVE: viewport-fit=cover handles iPhone notch/safe areas -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#1A4530">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YFC Pastoral Formation Tracker</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -51,137 +49,133 @@
     <!-- Separated stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
-<!-- RESPONSIVE: text-xs removed from body — base size now comes from the fluid
-     clamp() rule in style.css so it scales from phones up to 2560px screens. -->
-<body class="app-shell bg-pastoral-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen p-2 sm:p-4 lg:p-6 flex flex-col justify-between transition-colors duration-200">
+<body class="bg-pastoral-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs min-h-screen p-3 sm:p-6 flex flex-col justify-between transition-colors duration-200">
 
     <!-- SECURITY PIN OVERLAY MODAL -->
     <div id="pinModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
-        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden p-5 sm:p-6 text-center">
+        <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden p-6 text-center">
             <div class="mx-auto bg-pastoral-100 dark:bg-slate-700 text-pastoral-800 dark:text-emerald-400 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-3">🔒</div>
             <h2 class="font-serif-display text-base font-semibold mb-1">Security Authentication</h2>
             <p class="text-[11px] text-slate-400 mb-4">Please enter your 4-digit security PIN to access the tracker.</p>
             <form onsubmit="verifyPin(event)" class="space-y-3">
-                <input type="password" id="pinInput" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="••••" required aria-label="4-digit security PIN" class="w-full text-center tracking-widest text-lg py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600">
-                <button type="submit" class="glow-btn w-full bg-pastoral-800 hover:bg-pastoral-900 text-white py-2.5 rounded-lg font-medium text-xs shadow-sm transition">Unlock Tracker</button>
-                <p id="pinError" class="text-red-500 text-[10px] hidden" role="alert">Incorrect PIN. Try again.</p>
+                <input type="password" id="pinInput" maxlength="4" placeholder="••••" required class="w-full text-center tracking-widest text-lg py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600">
+                <button type="submit" class="glow-btn w-full bg-pastoral-800 hover:bg-pastoral-900 text-white py-2 rounded-lg font-medium text-xs shadow-sm transition">Unlock Tracker</button>
+                <p id="pinError" class="text-red-500 text-[10px] hidden">Incorrect PIN. Try again.</p>
             </form>
         </div>
     </div>
 
-    <!-- RESPONSIVE: container now steps up on wide monitors instead of being
-         stuck at max-w-5xl with a huge empty page around it. -->
-    <div class="app-container max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] mx-auto w-full bg-white dark:bg-slate-800 border border-pastoral-100 dark:border-slate-700 rounded-2xl shadow-lg overflow-hidden transition-colors duration-200 flex flex-col">
+    <div class="max-w-5xl mx-auto w-full bg-white dark:bg-slate-800 border border-pastoral-100 dark:border-slate-700 rounded-2xl shadow-lg overflow-hidden transition-colors duration-200 flex flex-col">
 
         <!-- Header -->
-        <div class="header-texture bg-gradient-to-br from-pastoral-800 to-pastoral-950 text-white px-4 sm:px-6 py-4 sm:py-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4">
-            <div class="min-w-0">
-                <h1 class="font-serif-display text-base sm:text-lg xl:text-xl font-semibold tracking-tight leading-tight">YFC Pastoral Formation Tracker</h1>
+        <div class="header-texture bg-gradient-to-br from-pastoral-800 to-pastoral-950 text-white px-5 sm:px-6 py-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="font-serif-display text-lg sm:text-xl font-semibold tracking-tight leading-none">YFC Pastoral Formation Tracker</h1>
                 <p class="text-[11px] text-pastoral-200 mt-1">Area Cluster B — following each member's formation journey &amp; finances</p>
             </div>
 
-            <!-- RESPONSIVE: wraps into a tidy grid on phones instead of squeezing into one row -->
-            <div class="w-full lg:w-auto flex flex-wrap items-center gap-2 justify-start lg:justify-end">
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
                 <div id="liveClock" class="hidden xl:flex items-center gap-1.5 text-[11px] text-cream-50/90 font-medium bg-white/10 px-3 py-2 rounded-lg border border-white/10">
-                    <span aria-hidden="true">🕒</span> <span id="clockText">--:--:--</span>
+                    <span>🕒</span> <span id="clockText">--:--:--</span>
                 </div>
 
-                <div class="relative">
-                    <button onclick="toggleThemePicker()" id="themePickerBtn" aria-haspopup="true" aria-expanded="false" class="header-btn bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg font-semibold text-xs transition flex items-center justify-center gap-1 shadow-sm" title="Change site color">
-                        <span aria-hidden="true">🎨</span> Color
-                    </button>
-                    <div id="themePickerDropdown" class="hidden absolute left-0 sm:left-auto sm:right-0 mt-2 w-60 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-xl shadow-2xl border border-pastoral-100 dark:border-slate-700 p-3 z-50">
-                        <p class="text-[10px] font-bold text-slate-400 mb-2 px-0.5">Pick a background color</p>
-                        <div id="themeSwatchGrid" class="grid grid-cols-5 gap-2.5 place-items-center"></div>
-                        <p class="text-[10px] text-slate-400 mt-2.5 px-0.5">Applies to the background &amp; accents in light mode. Dark mode stays as is.</p>
+                <div class="flex items-center gap-2 relative">
+                    <div class="relative">
+                        <button onclick="toggleThemePicker()" id="themePickerBtn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg font-semibold text-xs transition flex items-center gap-1 shadow-sm" title="Change site color">
+                            🎨 Color
+                        </button>
+                        <div id="themePickerDropdown" class="hidden absolute right-0 mt-2 w-60 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-xl shadow-2xl border border-pastoral-100 dark:border-slate-700 p-3 z-50">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-2 px-0.5">Pick a background color</p>
+                            <div id="themeSwatchGrid" class="grid grid-cols-5 gap-2.5 place-items-center"></div>
+                            <p class="text-[10px] text-slate-400 mt-2.5 px-0.5">Applies to the background &amp; accents in light mode. Dark mode stays as is.</p>
+                        </div>
                     </div>
+                    <button onclick="toggleDarkMode()" id="darkModeBtn" class="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg font-semibold text-xs transition flex items-center gap-1 shadow-sm">
+                        🌙 Dark mode
+                    </button>
+                    <button onclick="logoutSession()" class="bg-red-500/20 hover:bg-red-500/30 text-red-200 px-3 py-2 rounded-lg font-semibold text-xs transition flex items-center gap-1 shadow-sm" title="Lock Tracker">
+                        🔒 Log out
+                    </button>
+                    <button onclick="openAddModal()" class="glow-btn bg-gold-400 hover:bg-gold-500 text-pastoral-950 px-4 py-2 rounded-lg font-bold shadow-md transition transform active:scale-95 flex items-center gap-1.5 text-xs">
+                        <span class="text-base leading-none">+</span> Add member
+                    </button>
                 </div>
-
-                <button onclick="toggleDarkMode()" id="darkModeBtn" class="header-btn bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg font-semibold text-xs transition flex items-center justify-center gap-1 shadow-sm">
-                    <span aria-hidden="true">🌙</span> Dark mode
-                </button>
-                <button onclick="logoutSession()" class="header-btn bg-red-500/20 hover:bg-red-500/30 text-red-200 px-3 py-2 rounded-lg font-semibold text-xs transition flex items-center justify-center gap-1 shadow-sm" title="Lock Tracker">
-                    <span aria-hidden="true">🔒</span> Log out
-                </button>
-                <button onclick="openAddModal()" class="header-btn glow-btn bg-gold-400 hover:bg-gold-500 text-pastoral-950 px-4 py-2 rounded-lg font-bold shadow-md transition transform active:scale-95 flex items-center justify-center gap-1.5 text-xs">
-                    <span class="text-base leading-none" aria-hidden="true">+</span> Add member
-                </button>
             </div>
         </div>
 
         <!-- Navigation -->
-        <div class="bg-pastoral-50 dark:bg-slate-900 border-b border-pastoral-100 dark:border-slate-700 px-3 sm:px-6 pt-3 pb-3 flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-3 transition-colors duration-200">
-            <div role="tablist" aria-label="Tracker sections" class="tab-rail flex w-full xl:w-auto bg-white dark:bg-slate-800 border border-pastoral-100 dark:border-slate-700 rounded-full p-1 shadow-xs overflow-x-auto">
-                <button role="tab" aria-selected="true" onclick="switchTab('members')" id="tabBtnMembers" class="tab-pill flex-1 xl:flex-none whitespace-nowrap px-3 sm:px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5">
-                    <span aria-hidden="true">🧑‍🤝‍🧑</span> Members
+        <div class="bg-pastoral-50 dark:bg-slate-900 border-b border-pastoral-100 dark:border-slate-700 px-4 sm:px-6 pt-3 pb-3 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 transition-colors duration-200">
+            <div class="flex w-full sm:w-auto bg-white dark:bg-slate-800 border border-pastoral-100 dark:border-slate-700 rounded-full p-1 shadow-xs overflow-x-auto">
+                <button onclick="switchTab('members')" id="tabBtnMembers" class="tab-pill flex-1 sm:flex-none whitespace-nowrap px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5">
+                    <span>🧑‍🤝‍🧑</span> Members
                 </button>
-                <button role="tab" aria-selected="false" onclick="switchTab('formations')" id="tabBtnFormations" class="tab-pill flex-1 xl:flex-none whitespace-nowrap px-3 sm:px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5">
-                    <span aria-hidden="true">📖</span> Formation tracks
+                <button onclick="switchTab('formations')" id="tabBtnFormations" class="tab-pill flex-1 sm:flex-none whitespace-nowrap px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5">
+                    <span>📖</span> Formation tracks
                 </button>
-                <button role="tab" aria-selected="false" onclick="switchTab('finance')" id="tabBtnFinance" class="tab-pill flex-1 xl:flex-none whitespace-nowrap px-3 sm:px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5">
-                    <span aria-hidden="true">💰</span> Finance Tracker
+                <button onclick="switchTab('finance')" id="tabBtnFinance" class="tab-pill flex-1 sm:flex-none whitespace-nowrap px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5">
+                    <span>💰</span> Finance Tracker
                 </button>
-                <button role="tab" aria-selected="false" onclick="switchTab('calendar')" id="tabBtnCalendar" class="tab-pill flex-1 xl:flex-none whitespace-nowrap px-3 sm:px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5">
-                    <span aria-hidden="true">📅</span> Calendar Date
+                <button onclick="switchTab('calendar')" id="tabBtnCalendar" class="tab-pill flex-1 sm:flex-none whitespace-nowrap px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5">
+                    <span>📅</span> Calendar Date
                 </button>
-                <button role="tab" aria-selected="false" onclick="switchTab('history')" id="tabBtnHistory" class="tab-pill flex-1 xl:flex-none whitespace-nowrap px-3 sm:px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5">
-                    <span aria-hidden="true">🗂️</span> History &amp; backups
+                <button onclick="switchTab('history')" id="tabBtnHistory" class="tab-pill flex-1 sm:flex-none whitespace-nowrap px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5">
+                    <span>🗂️</span> History &amp; backups
                 </button>
             </div>
 
-            <div class="flex items-center justify-stretch sm:justify-end gap-2 text-[11px]">
-                <button onclick="exportData()" class="nav-action-btn flex-1 sm:flex-none justify-center text-pastoral-700 dark:text-slate-300 hover:text-pastoral-900 dark:hover:text-emerald-300 font-semibold px-3 py-2 rounded-lg border border-pastoral-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center gap-1.5 shadow-xs" title="Download a full backup (members, finance &amp; calendar) as JSON">
-                    <span aria-hidden="true">💾</span> Export
+            <div class="flex items-center justify-end gap-2 text-[11px]">
+                <button onclick="exportData()" class="nav-action-btn text-pastoral-700 dark:text-slate-300 hover:text-pastoral-900 dark:hover:text-emerald-300 font-semibold px-3 py-2 rounded-lg border border-pastoral-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center gap-1.5 shadow-xs" title="Download a full backup (members, finance &amp; calendar) as JSON">
+                    <span>💾</span> Export
                 </button>
-                <label class="nav-action-btn flex-1 sm:flex-none justify-center text-pastoral-700 dark:text-slate-300 hover:text-pastoral-900 dark:hover:text-emerald-300 font-semibold px-3 py-2 rounded-lg border border-pastoral-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer flex items-center gap-1.5 shadow-xs" title="Restore data from a backup JSON file">
-                    <span aria-hidden="true">📂</span> Import <input type="file" id="importFile" accept=".json" onchange="importData(event)" class="hidden">
+                <label class="nav-action-btn text-pastoral-700 dark:text-slate-300 hover:text-pastoral-900 dark:hover:text-emerald-300 font-semibold px-3 py-2 rounded-lg border border-pastoral-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer flex items-center gap-1.5 shadow-xs" title="Restore data from a backup JSON file">
+                    <span>📂</span> Import <input type="file" id="importFile" accept=".json" onchange="importData(event)" class="hidden">
                 </label>
             </div>
         </div>
 
         <!-- MAIN CONTAINER -->
-        <div class="w-full min-h-[480px] flex-1">
+        <div class="w-full min-h-[480px]">
 
             <!-- TAB 1: MEMBERS DIRECTORY -->
             <div id="tabContentMembers" class="block w-full">
-                <div class="bg-pastoral-50/60 dark:bg-slate-800/40 border-b border-pastoral-100 dark:border-slate-700 px-3 sm:px-6 py-4 grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3 text-slate-600 dark:text-slate-300 text-left">
-                    <div class="stat-card bg-white dark:bg-slate-800/80 p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs overflow-hidden">
-                        <span class="block text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-tight">Total cluster members</span>
-                        <span id="statTotalMembers" class="font-serif-display text-lg xl:text-xl font-semibold text-pastoral-900 dark:text-white mt-0.5 block">0</span>
+                <div class="bg-pastoral-50/60 dark:bg-slate-800/40 border-b border-pastoral-100 dark:border-slate-700 px-3 sm:px-6 py-4 grid grid-cols-3 gap-2 sm:gap-3 text-slate-600 dark:text-slate-300 text-center sm:text-left">
+                    <div class="stat-card bg-white dark:bg-slate-800/80 p-2 sm:p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-tight">Total cluster members</span>
+                        <span id="statTotalMembers" class="font-serif-display text-base sm:text-lg font-semibold text-pastoral-900 dark:text-white mt-0.5 block">0</span>
                     </div>
-                    <div class="stat-card bg-white dark:bg-slate-800/80 p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs overflow-hidden">
-                        <span class="block text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-tight">Chapter 1 members</span>
-                        <span id="statChapter1" class="font-serif-display text-lg xl:text-xl font-semibold text-pastoral-700 dark:text-emerald-400 mt-0.5 block">0</span>
+                    <div class="stat-card bg-white dark:bg-slate-800/80 p-2 sm:p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-tight">Chapter 1 members</span>
+                        <span id="statChapter1" class="font-serif-display text-base sm:text-lg font-semibold text-pastoral-700 dark:text-emerald-400 mt-0.5 block">0</span>
                     </div>
-                    <div class="stat-card bg-white dark:bg-slate-800/80 p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs overflow-hidden">
-                        <span class="block text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-tight">Chapter 2 members</span>
-                        <span id="statChapter2" class="font-serif-display text-lg xl:text-xl font-semibold text-pastoral-700 dark:text-emerald-400 mt-0.5 block">0</span>
+                    <div class="stat-card bg-white dark:bg-slate-800/80 p-2 sm:p-3 rounded-xl border border-pastoral-100/70 dark:border-slate-700 shadow-xs overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 dark:text-slate-500 leading-tight">Chapter 2 members</span>
+                        <span id="statChapter2" class="font-serif-display text-base sm:text-lg font-semibold text-pastoral-700 dark:text-emerald-400 mt-0.5 block">0</span>
                     </div>
                 </div>
 
-                <div class="p-3 sm:p-4 bg-white dark:bg-slate-800 border-b border-pastoral-100 dark:border-slate-700 flex flex-col sm:flex-row gap-3 transition-colors duration-200">
-                    <div class="relative flex-1 min-w-0">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400" aria-hidden="true">🔍</span>
-                        <input type="text" id="searchInput" oninput="handleSearchInput()" placeholder="Search member by name or nickname..." aria-label="Search members" class="w-full pl-10 pr-10 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 text-xs transition shadow-xs">
-                        <button id="clearSearchBtn" onclick="clearSearch()" aria-label="Clear search" class="absolute inset-y-0 right-0 pr-3 hidden items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-sm">✕</button>
+                <div class="p-4 bg-white dark:bg-slate-800 border-b border-pastoral-100 dark:border-slate-700 flex flex-col sm:flex-row gap-3 transition-colors duration-200">
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">🔍</span>
+                        <input type="text" id="searchInput" oninput="handleSearchInput()" placeholder="Search member by name or nickname..." class="w-full pl-10 pr-9 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 text-xs transition shadow-xs">
+                        <button id="clearSearchBtn" onclick="clearSearch()" class="absolute inset-y-0 right-0 pr-3 hidden items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-sm">✕</button>
                     </div>
-                    <select id="chapterFilter" onchange="handleChapterFilterChange()" aria-label="Filter by area or chapter" class="w-full sm:w-auto border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 text-xs transition shadow-xs">
+                    <select id="chapterFilter" onchange="handleChapterFilterChange()" class="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 text-xs transition shadow-xs">
                         <option value="">All areas / chapters</option>
                         <option value="Chapter 1">Chapter 1</option>
                         <option value="Chapter 2">Chapter 2</option>
                     </select>
                 </div>
 
-                <div class="table-scroll overflow-x-auto w-full pt-2 sm:pt-0">
+                <div class="overflow-x-auto w-full pt-2 sm:pt-0">
                     <table class="responsive-table w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-pastoral-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 text-[10px] font-semibold border-b border-pastoral-100 dark:border-slate-700">
-                                <th scope="col" class="py-3.5 px-4 w-10 text-center">#</th>
-                                <th scope="col" class="py-3.5 px-4">Member name</th>
-                                <th scope="col" class="py-3.5 px-4 w-28">Gender / age</th>
-                                <th scope="col" class="py-3.5 px-4 w-36">Area / chapter</th>
-                                <th scope="col" class="py-3.5 px-4 w-32 text-center">Formations done</th>
-                                <th scope="col" class="py-3.5 px-4 w-56 text-center whitespace-nowrap">Actions</th>
+                                <th class="py-3.5 px-4 w-10 text-center">#</th>
+                                <th class="py-3.5 px-4">Member name</th>
+                                <th class="py-3.5 px-4 w-28">Gender / age</th>
+                                <th class="py-3.5 px-4 w-36">Area / chapter</th>
+                                <th class="py-3.5 px-4 w-32 text-center">Formations done</th>
+                                <th class="py-3.5 px-4 w-56 text-center whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="memberTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/50">
@@ -193,18 +187,20 @@
             </div>
 
             <!-- TAB 2: FORMATION SUMMARY -->
-            <div id="tabContentFormations" class="hidden p-3 sm:p-6 w-full">
+            <div id="tabContentFormations" class="hidden p-4 sm:p-6 w-full">
                 <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <h2 class="font-serif-display text-base xl:text-lg font-semibold text-slate-800 dark:text-slate-100">Formation tracks</h2>
+                    <div>
+                        <h2 class="font-serif-display text-base font-semibold text-slate-800 dark:text-slate-100">Formation tracks</h2>
+                    </div>
                 </div>
-                <div class="table-scroll overflow-x-auto border border-pastoral-100 dark:border-slate-700 rounded-xl w-full">
+                <div class="overflow-x-auto border border-pastoral-100 dark:border-slate-700 rounded-xl w-full">
                     <table class="responsive-table w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-pastoral-800 text-white text-[10px] font-semibold">
-                                <th scope="col" class="py-3 px-4 w-20">Code</th>
-                                <th scope="col" class="py-3 px-4">Formation track</th>
-                                <th scope="col" class="py-3 px-4 w-24 text-center"># talks</th>
-                                <th scope="col" class="py-3 px-4 w-44 text-center">Completed count</th>
+                                <th class="py-3 px-4 w-20">Code</th>
+                                <th class="py-3 px-4">Formation track</th>
+                                <th class="py-3 px-4 w-24 text-center"># talks</th>
+                                <th class="py-3 px-4 w-44 text-center">Completed count</th>
                             </tr>
                         </thead>
                         <tbody id="formationSummaryBody" class="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
@@ -215,38 +211,40 @@
             </div>
 
             <!-- TAB 3: FINANCE TRACKER -->
-            <div id="tabContentFinance" class="hidden p-3 sm:p-6 w-full">
+            <div id="tabContentFinance" class="hidden p-4 sm:p-6 w-full">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                    <h2 class="font-serif-display text-base xl:text-lg font-semibold text-slate-800 dark:text-slate-100">Cluster Finance Tracker</h2>
-                    <button onclick="openAddTransactionModal()" class="w-full sm:w-auto bg-pastoral-700 hover:bg-pastoral-800 text-white px-4 py-2.5 rounded-lg font-bold text-xs transition">+ Add Transaction</button>
+                    <div>
+                        <h2 class="font-serif-display text-base font-semibold text-slate-800 dark:text-slate-100">Cluster Finance Tracker</h2>
+                    </div>
+                    <button onclick="openAddTransactionModal()" class="bg-pastoral-700 hover:bg-pastoral-800 text-white px-4 py-2 rounded-lg font-bold text-xs transition">+ Add Transaction</button>
                 </div>
 
                 <!-- Finance summary cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-5">
-                    <div class="stat-card bg-pastoral-50 dark:bg-slate-900/60 p-3 rounded-xl border border-pastoral-100 dark:border-slate-700 overflow-hidden">
-                        <span class="block text-[10px] font-semibold text-slate-400 leading-tight">Total Funds In</span>
-                        <span id="financeTotalIn" class="font-serif-display text-base xl:text-lg font-semibold text-emerald-600 mt-0.5 block truncate">₱0.00</span>
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
+                    <div class="bg-pastoral-50 dark:bg-slate-900/60 p-2 sm:p-3 rounded-xl border border-pastoral-100 dark:border-slate-700 overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 leading-tight">Total Funds In</span>
+                        <span id="financeTotalIn" class="font-serif-display text-sm sm:text-base font-semibold text-emerald-600 mt-0.5 block truncate">₱0.00</span>
                     </div>
-                    <div class="stat-card bg-pastoral-50 dark:bg-slate-900/60 p-3 rounded-xl border border-pastoral-100 dark:border-slate-700 overflow-hidden">
-                        <span class="block text-[10px] font-semibold text-slate-400 leading-tight">Total Expenses</span>
-                        <span id="financeTotalOut" class="font-serif-display text-base xl:text-lg font-semibold text-red-500 mt-0.5 block truncate">₱0.00</span>
+                    <div class="bg-pastoral-50 dark:bg-slate-900/60 p-2 sm:p-3 rounded-xl border border-pastoral-100 dark:border-slate-700 overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 leading-tight">Total Expenses</span>
+                        <span id="financeTotalOut" class="font-serif-display text-sm sm:text-base font-semibold text-red-500 mt-0.5 block truncate">₱0.00</span>
                     </div>
-                    <div class="stat-card bg-pastoral-50 dark:bg-slate-900/60 p-3 rounded-xl border border-pastoral-100 dark:border-slate-700 overflow-hidden">
-                        <span class="block text-[10px] font-semibold text-slate-400 leading-tight">Current Balance</span>
-                        <span id="financeBalance" class="font-serif-display text-base xl:text-lg font-semibold text-pastoral-800 dark:text-emerald-400 mt-0.5 block truncate">₱0.00</span>
+                    <div class="bg-pastoral-50 dark:bg-slate-900/60 p-2 sm:p-3 rounded-xl border border-pastoral-100 dark:border-slate-700 overflow-hidden">
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-slate-400 leading-tight">Current Balance</span>
+                        <span id="financeBalance" class="font-serif-display text-sm sm:text-base font-semibold text-pastoral-800 dark:text-emerald-400 mt-0.5 block truncate">₱0.00</span>
                     </div>
                 </div>
 
-                <div class="table-scroll overflow-x-auto border border-pastoral-100 dark:border-slate-700 rounded-xl w-full">
+                <div class="overflow-x-auto border border-pastoral-100 dark:border-slate-700 rounded-xl w-full">
                     <table class="responsive-table w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-pastoral-800 text-white text-[10px] font-semibold">
-                                <th scope="col" class="py-3 px-4 w-10 text-center">#</th>
-                                <th scope="col" class="py-3 px-4">Date</th>
-                                <th scope="col" class="py-3 px-4">Description</th>
-                                <th scope="col" class="py-3 px-4">Type</th>
-                                <th scope="col" class="py-3 px-4 text-right">Amount</th>
-                                <th scope="col" class="py-3 px-4 text-center">Action</th>
+                                <th class="py-3 px-4 w-10 text-center">#</th>
+                                <th class="py-3 px-4">Date</th>
+                                <th class="py-3 px-4">Description</th>
+                                <th class="py-3 px-4">Type</th>
+                                <th class="py-3 px-4 text-right">Amount</th>
+                                <th class="py-3 px-4 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody id="financeTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
@@ -258,14 +256,16 @@
             </div>
 
             <!-- TAB 4: CALENDAR DATE -->
-            <div id="tabContentCalendar" class="hidden p-3 sm:p-6 w-full">
+            <div id="tabContentCalendar" class="hidden p-4 sm:p-6 w-full">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                    <h2 id="calendarMonthTitle" class="font-serif-display text-base xl:text-lg font-semibold text-slate-800 dark:text-slate-100"></h2>
-                    <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto">
-                        <button onclick="changeMonth(-1)" aria-label="Previous month" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3.5 py-2 rounded-lg text-xs font-bold transition min-h-[42px]" title="Previous month">&larr;</button>
-                        <button onclick="goToToday()" class="flex-1 sm:flex-none bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3.5 py-2 rounded-lg text-xs font-bold transition min-h-[42px]">Today</button>
-                        <button onclick="changeMonth(1)" aria-label="Next month" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3.5 py-2 rounded-lg text-xs font-bold transition min-h-[42px]" title="Next month">&rarr;</button>
-                        <button onclick="openAddEventModal()" class="glow-btn flex-1 sm:flex-none bg-pastoral-700 hover:bg-pastoral-800 text-white px-3.5 py-2 rounded-lg font-bold text-xs transition min-h-[42px]">+ Add Event</button>
+                    <div>
+                        <h2 id="calendarMonthTitle" class="font-serif-display text-base font-semibold text-slate-800 dark:text-slate-100"></h2>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="changeMonth(-1)" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg text-xs font-bold transition min-h-[38px]" title="Previous month">&larr;</button>
+                        <button onclick="goToToday()" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg text-xs font-bold transition min-h-[38px]">Today</button>
+                        <button onclick="changeMonth(1)" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg text-xs font-bold transition min-h-[38px]" title="Next month">&rarr;</button>
+                        <button onclick="openAddEventModal()" class="glow-btn bg-pastoral-700 hover:bg-pastoral-800 text-white px-3.5 py-2 rounded-lg font-bold text-xs transition min-h-[38px]">+ Add Event</button>
                     </div>
                 </div>
 
@@ -274,14 +274,8 @@
 
                 <!-- Calendar Grid Layout -->
                 <div class="border border-pastoral-100 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800">
-                    <div class="grid grid-cols-7 bg-pastoral-800 text-white text-center font-semibold text-[10px] py-2">
-                        <span><span class="sm:hidden">S</span><span class="hidden sm:inline">Sun</span></span>
-                        <span><span class="sm:hidden">M</span><span class="hidden sm:inline">Mon</span></span>
-                        <span><span class="sm:hidden">T</span><span class="hidden sm:inline">Tue</span></span>
-                        <span><span class="sm:hidden">W</span><span class="hidden sm:inline">Wed</span></span>
-                        <span><span class="sm:hidden">T</span><span class="hidden sm:inline">Thu</span></span>
-                        <span><span class="sm:hidden">F</span><span class="hidden sm:inline">Fri</span></span>
-                        <span><span class="sm:hidden">S</span><span class="hidden sm:inline">Sat</span></span>
+                    <div class="grid grid-cols-7 bg-pastoral-800 text-white text-center font-semibold text-[9px] sm:text-[10px] py-2">
+                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
                     </div>
                     <div id="calendarGrid" class="grid grid-cols-7 divide-x divide-y divide-slate-100 dark:divide-slate-700 text-xs">
                         <!-- Dynamic days -->
@@ -291,27 +285,29 @@
             </div>
 
             <!-- TAB 5: HISTORY & BACKUPS -->
-            <div id="tabContentHistory" class="hidden p-3 sm:p-6 w-full">
+            <div id="tabContentHistory" class="hidden p-4 sm:p-6 w-full">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     <div>
                         <div class="flex justify-between items-center mb-2">
-                            <h2 class="font-serif-display text-base xl:text-lg font-semibold text-slate-800 dark:text-slate-100">Activity history</h2>
-                            <button onclick="clearHistoryLogs()" class="text-[10px] text-red-500 hover:text-red-700 font-semibold underline shrink-0 px-2 py-1">Clear</button>
+                            <div>
+                                <h2 class="font-serif-display text-base font-semibold text-slate-800 dark:text-slate-100">Activity history</h2>
+                            </div>
+                            <button onclick="clearHistoryLogs()" class="text-[10px] text-red-500 hover:text-red-700 font-semibold underline shrink-0">Clear</button>
                         </div>
-                        <div id="historyLogContainer" class="border border-pastoral-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 max-h-[60vh] lg:max-h-[420px] overflow-y-auto text-[11px]"></div>
+                        <div id="historyLogContainer" class="border border-pastoral-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 max-h-[420px] overflow-y-auto text-[11px]"></div>
                     </div>
 
                     <div>
-                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-2 gap-2">
+                        <div class="flex justify-between items-center mb-2 gap-2">
                             <div class="min-w-0">
-                                <h2 class="font-serif-display text-base xl:text-lg font-semibold text-slate-800 dark:text-slate-100">Saved backups</h2>
+                                <h2 class="font-serif-display text-base font-semibold text-slate-800 dark:text-slate-100">Saved backups</h2>
                                 <p class="text-[10px] text-slate-400 leading-tight">Snapshots stored in this browser — restore any of them with one tap</p>
                             </div>
-                            <button onclick="createManualBackup()" class="nav-action-btn shrink-0 flex items-center justify-center gap-1.5 bg-pastoral-700 hover:bg-pastoral-800 text-white px-3 py-2 rounded-lg text-[11px] font-semibold shadow-sm">
-                                <span aria-hidden="true">📸</span> Back up now
+                            <button onclick="createManualBackup()" class="nav-action-btn shrink-0 flex items-center gap-1.5 bg-pastoral-700 hover:bg-pastoral-800 text-white px-3 py-2 rounded-lg text-[11px] font-semibold shadow-sm">
+                                <span>📸</span> Back up now
                             </button>
                         </div>
-                        <div id="backupListContainer" class="border border-pastoral-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 max-h-[60vh] lg:max-h-[420px] overflow-y-auto p-2 space-y-1.5 text-[11px]"></div>
+                        <div id="backupListContainer" class="border border-pastoral-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 max-h-[420px] overflow-y-auto p-2 space-y-1.5 text-[11px]"></div>
                         <p class="text-[10px] text-slate-400 mt-2">Use the <span class="font-semibold text-slate-500 dark:text-slate-400">Export</span> / <span class="font-semibold text-slate-500 dark:text-slate-400">Import</span> buttons in the top navigation bar to download a full JSON backup file or restore one from a file.</p>
                     </div>
                 </div>
@@ -319,87 +315,87 @@
         </div>
 
         <!-- Footer Bar -->
-        <div class="bg-pastoral-50 dark:bg-slate-900 px-4 sm:px-6 py-3 border-t border-pastoral-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-400 dark:text-slate-500 gap-2 text-center sm:text-left">
+        <div class="bg-pastoral-50 dark:bg-slate-900 px-6 py-3 border-t border-pastoral-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-400 dark:text-slate-500 gap-2">
             <span>YFC Pastoral Formation Tracker • Area Cluster B (Cloud Synced)</span>
             <span id="lastUpdated" class="font-medium text-pastoral-700 dark:text-emerald-400">Connecting to Firebase...</span>
         </div>
     </div>
 
     <!-- Modals -->
-    <div id="formationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
-        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-xl w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[92svh]">
-            <div class="bg-pastoral-800 text-white px-4 sm:px-6 py-3.5 flex justify-between items-center font-semibold text-xs shrink-0">
-                <span id="modalMemberName" class="tracking-wide truncate">Member Formations</span>
-                <button onclick="requestCloseFormationModal()" aria-label="Close" class="text-pastoral-200 hover:text-white font-bold text-base transition px-2">✕</button>
+    <div id="formationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-xl w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden transform transition-all">
+            <div class="bg-pastoral-800 text-white px-6 py-3.5 flex justify-between items-center font-semibold text-xs">
+                <span id="modalMemberName" class="tracking-wide">Member Formations</span>
+                <button onclick="requestCloseFormationModal()" class="text-pastoral-200 hover:text-white font-bold text-base transition">✕</button>
             </div>
-            <div class="p-3 sm:p-4 bg-pastoral-50 dark:bg-slate-900/50 border-b border-pastoral-100 dark:border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-slate-600 dark:text-slate-300 shrink-0" id="modalMemberInfo"></div>
-            <div class="p-4 sm:p-6 overflow-y-auto flex-1">
+            <div class="p-4 bg-pastoral-50 dark:bg-slate-900/50 border-b border-pastoral-100 dark:border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-slate-600 dark:text-slate-300" id="modalMemberInfo"></div>
+            <div class="p-6 max-h-[55vh] overflow-y-auto">
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3 font-medium">Tap a button to mark a track complete or reset it, then save when you're done:</p>
                 <div id="modalFormationList" class="space-y-2"></div>
             </div>
-            <div class="bg-pastoral-50 dark:bg-slate-900 px-4 sm:px-6 py-3 border-t border-pastoral-100 dark:border-slate-700 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 shrink-0">
+            <div class="bg-pastoral-50 dark:bg-slate-900 px-6 py-3 border-t border-pastoral-100 dark:border-slate-700 flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
                 <span id="formationDirtyBadge" class="hidden text-[10px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 mr-auto sm:mr-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span> Unsaved changes
                 </span>
-                <button onclick="requestCloseFormationModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-5 py-2 rounded-lg font-medium text-xs shadow-sm transition min-h-[44px]">Cancel</button>
-                <button onclick="saveAndCloseFormationModal()" class="w-full sm:w-auto bg-pastoral-800 hover:bg-pastoral-900 text-white px-5 py-2 rounded-lg font-medium text-xs shadow-sm transition min-h-[44px]">Save &amp; Close</button>
+                <button onclick="requestCloseFormationModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-5 py-2 rounded-lg font-medium text-xs shadow-sm transition min-h-[42px]">Cancel</button>
+                <button onclick="saveAndCloseFormationModal()" class="w-full sm:w-auto bg-pastoral-800 hover:bg-pastoral-900 text-white px-5 py-2 rounded-lg font-medium text-xs shadow-sm transition min-h-[42px]">Save &amp; Close</button>
             </div>
         </div>
     </div>
 
     <!-- Unsaved Formation Changes Modal -->
-    <div id="formationUnsavedModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-[60] p-3 sm:p-4">
-        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-y-auto max-h-[92svh] p-5 sm:p-6 text-center">
+    <div id="formationUnsavedModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-[60] p-4">
+        <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden p-6 text-center">
             <div class="mx-auto bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-3">⚠️</div>
             <h3 class="font-serif-display text-sm font-semibold mb-1">Save your changes?</h3>
             <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-5">You marked some formations complete or reset but haven't saved yet. Save before closing, or discard these changes?</p>
             <div class="flex flex-col gap-2">
-                <button onclick="saveFormationChangesFromPrompt()" class="w-full bg-pastoral-800 hover:bg-pastoral-900 text-white py-2.5 rounded-lg font-semibold transition min-h-[44px]">Save changes</button>
-                <button onclick="discardFormationChangesAndClose()" class="w-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 py-2.5 rounded-lg font-semibold transition min-h-[44px]">Discard changes</button>
-                <button onclick="cancelFormationUnsavedPrompt()" class="w-full text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 py-2 rounded-lg font-medium text-[11px] transition min-h-[44px]">Keep editing</button>
+                <button onclick="saveFormationChangesFromPrompt()" class="w-full bg-pastoral-800 hover:bg-pastoral-900 text-white py-2.5 rounded-lg font-semibold transition min-h-[42px]">Save changes</button>
+                <button onclick="discardFormationChangesAndClose()" class="w-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 py-2.5 rounded-lg font-semibold transition min-h-[42px]">Discard changes</button>
+                <button onclick="cancelFormationUnsavedPrompt()" class="w-full text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 py-2 rounded-lg font-medium text-[11px] transition">Keep editing</button>
             </div>
         </div>
     </div>
 
-    <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
-        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-lg w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[92svh]">
-            <div class="bg-pastoral-800 text-white px-4 sm:px-6 py-3.5 flex justify-between items-center font-semibold text-xs shrink-0">
+    <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-lg w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden max-h-[92vh] overflow-y-auto">
+            <div class="bg-pastoral-800 text-white px-6 py-3.5 flex justify-between items-center font-semibold text-xs">
                 <span id="addModalTitle" class="tracking-wide">Add New Member</span>
-                <button onclick="closeAddModal()" aria-label="Close" class="text-pastoral-200 hover:text-white font-bold text-base transition px-2">✕</button>
+                <button onclick="closeAddModal()" class="text-pastoral-200 hover:text-white font-bold text-base transition">✕</button>
             </div>
-            <form onsubmit="handleSaveMember(event)" class="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto flex-1">
+            <form onsubmit="handleSaveMember(event)" class="p-6 space-y-4 text-xs">
                 <input type="hidden" id="editMemberId">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="addLastName" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Last name</label>
-                        <input type="text" id="addLastName" required placeholder="Dela Cruz" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Last name</label>
+                        <input type="text" id="addLastName" required placeholder="Dela Cruz" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
                     </div>
                     <div>
-                        <label for="addFirstName" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">First name</label>
-                        <input type="text" id="addFirstName" required placeholder="Juan" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">First name</label>
+                        <input type="text" id="addFirstName" required placeholder="Juan" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
                     </div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="addNickname" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nickname</label>
-                        <input type="text" id="addNickname" placeholder="Jun" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nickname</label>
+                        <input type="text" id="addNickname" placeholder="Jun" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
                     </div>
                     <div>
-                        <label for="addGender" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Gender</label>
-                        <select id="addGender" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Gender</label>
+                        <select id="addGender" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                         </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="addBirthday" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Birthday</label>
-                        <input type="date" id="addBirthday" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Birthday</label>
+                        <input type="date" id="addBirthday" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
                     </div>
                     <div>
-                        <label for="addChapter" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Area / chapter</label>
-                        <select id="addChapter" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Area / chapter</label>
+                        <select id="addChapter" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 transition">
                             <option value="Chapter 1">Chapter 1</option>
                             <option value="Chapter 2">Chapter 2</option>
                         </select>
@@ -409,77 +405,77 @@
                 <div class="pt-1">
                     <button type="button" onclick="toggleAddFormFormationSection()" id="addFormFormationToggleBtn" class="w-full flex items-center justify-between gap-3 text-left px-4 py-3 rounded-xl border border-pastoral-200 dark:border-slate-600 bg-pastoral-50 dark:bg-slate-900/60 hover:bg-pastoral-100 dark:hover:bg-slate-800 transition">
                         <span class="flex items-center gap-3 min-w-0">
-                            <span class="w-9 h-9 rounded-full bg-pastoral-700 text-white flex items-center justify-center text-sm shrink-0 shadow-sm" aria-hidden="true">📖</span>
+                            <span class="w-9 h-9 rounded-full bg-pastoral-700 text-white flex items-center justify-center text-sm shrink-0 shadow-sm">📖</span>
                             <span class="min-w-0">
                                 <span class="block font-semibold text-slate-800 dark:text-slate-100">Formation progress</span>
                                 <span id="addFormFormationCountLabel" class="block text-[10px] text-slate-400">Optional — set now to skip a step</span>
                             </span>
                         </span>
-                        <span id="addFormFormationChevron" class="text-pastoral-700 dark:text-slate-300 text-base transition-transform shrink-0" aria-hidden="true">▾</span>
+                        <span id="addFormFormationChevron" class="text-pastoral-700 dark:text-slate-300 text-base transition-transform shrink-0">▾</span>
                     </button>
                     <div id="addFormFormationSection" class="hidden mt-2 space-y-1.5 max-h-56 overflow-y-auto pr-1 pl-0.5"></div>
                 </div>
 
                 <div class="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2">
-                    <button type="button" onclick="closeAddModal()" class="w-full sm:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg font-medium transition min-h-[44px]">Cancel</button>
-                    <button type="submit" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition min-h-[44px]">Save member</button>
+                    <button type="button" onclick="closeAddModal()" class="w-full sm:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg font-medium transition min-h-[42px]">Cancel</button>
+                    <button type="submit" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition min-h-[42px]">Save member</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Add Finance Modal -->
-    <div id="addTransactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
-        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-y-auto max-h-[92svh] p-5">
+    <div id="addTransactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden p-5 max-h-[92vh] overflow-y-auto">
             <h3 class="font-serif-display text-sm font-semibold mb-3">Add Financial Entry</h3>
             <form onsubmit="saveTransaction(event)" class="space-y-3 text-xs">
                 <div>
-                    <label for="transDesc" class="block font-semibold mb-1">Description</label>
-                    <input type="text" id="transDesc" required placeholder="Tithes / Camp Fee" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+                    <label class="block font-semibold mb-1">Description</label>
+                    <input type="text" id="transDesc" required placeholder="Tithes / Camp Fee" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900">
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label for="transType" class="block font-semibold mb-1">Type</label>
-                        <select id="transType" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2.5 bg-slate-50 dark:bg-slate-900">
+                        <label class="block font-semibold mb-1">Type</label>
+                        <select id="transType" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 bg-slate-50 dark:bg-slate-900">
                             <option value="In">Funds In (Income)</option>
                             <option value="Out">Expense</option>
                         </select>
                     </div>
                     <div>
-                        <label for="transAmount" class="block font-semibold mb-1">Amount (₱)</label>
-                        <input type="number" step="0.01" inputmode="decimal" id="transAmount" required placeholder="0.00" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+                        <label class="block font-semibold mb-1">Amount (₱)</label>
+                        <input type="number" step="0.01" id="transAmount" required placeholder="0.00" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900">
                     </div>
                 </div>
                 <div>
-                    <label for="transDate" class="block font-semibold mb-1">Date</label>
-                    <input type="date" id="transDate" required class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+                    <label class="block font-semibold mb-1">Date</label>
+                    <input type="date" id="transDate" required class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900">
                 </div>
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeAddTransactionModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-medium transition min-h-[44px]">Cancel</button>
-                    <button type="submit" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-medium transition min-h-[44px]">Save</button>
+                    <button type="button" onclick="closeAddTransactionModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-medium transition min-h-[42px]">Cancel</button>
+                    <button type="submit" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-medium transition min-h-[42px]">Save</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Add Event Modal -->
-    <div id="addEventModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
-        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-y-auto max-h-[92svh] p-5">
+    <div id="addEventModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden p-5 max-h-[92vh] overflow-y-auto">
             <h3 id="addEventModalTitle" class="font-serif-display text-sm font-semibold mb-3">Add Calendar Event</h3>
             <form onsubmit="saveCalendarEvent(event)" class="space-y-3 text-xs">
                 <input type="hidden" id="editEventId">
                 <div>
-                    <label for="eventTitle" class="block font-semibold mb-1">Event Title</label>
-                    <input type="text" id="eventTitle" required placeholder="Cluster Assembly" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+                    <label class="block font-semibold mb-1">Event Title</label>
+                    <input type="text" id="eventTitle" required placeholder="Cluster Assembly" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900">
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label for="eventDate" class="block font-semibold mb-1">Date</label>
-                        <input type="date" id="eventDate" required class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+                        <label class="block font-semibold mb-1">Date</label>
+                        <input type="date" id="eventDate" required class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-900">
                     </div>
                     <div>
-                        <label for="eventCategory" class="block font-semibold mb-1">Category</label>
-                        <select id="eventCategory" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2.5 bg-slate-50 dark:bg-slate-900">
+                        <label class="block font-semibold mb-1">Category</label>
+                        <select id="eventCategory" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 bg-slate-50 dark:bg-slate-900">
                             <option value="general">General</option>
                             <option value="meeting">Meeting</option>
                             <option value="formation">Formation</option>
@@ -489,36 +485,36 @@
                     </div>
                 </div>
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeAddEventModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-4 py-2 rounded-lg font-semibold transition min-h-[44px]">Cancel</button>
-                    <button type="submit" id="addEventSubmitBtn" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-semibold transition min-h-[44px]">Add Event</button>
+                    <button type="button" onclick="closeAddEventModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-4 py-2 rounded-lg font-semibold transition min-h-[42px]">Cancel</button>
+                    <button type="submit" id="addEventSubmitBtn" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-semibold transition min-h-[42px]">Add Event</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Day Detail Modal (view / manage a single day's events) -->
-    <div id="dayDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
-        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden max-h-[88svh] flex flex-col">
-            <div class="bg-pastoral-800 text-white px-4 sm:px-5 py-3.5 flex justify-between items-center font-semibold text-xs shrink-0">
-                <span id="dayDetailTitle" class="tracking-wide truncate">Events</span>
-                <button onclick="closeDayDetailModal()" aria-label="Close" class="text-pastoral-200 hover:text-white font-bold text-base transition px-2">✕</button>
+    <div id="dayDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden max-h-[85vh] flex flex-col">
+            <div class="bg-pastoral-800 text-white px-5 py-3.5 flex justify-between items-center font-semibold text-xs shrink-0">
+                <span id="dayDetailTitle" class="tracking-wide">Events</span>
+                <button onclick="closeDayDetailModal()" class="text-pastoral-200 hover:text-white font-bold text-base transition">✕</button>
             </div>
-            <div id="dayDetailList" class="p-4 space-y-2 overflow-y-auto flex-1"></div>
+            <div id="dayDetailList" class="p-4 space-y-2 overflow-y-auto"></div>
             <div class="p-4 border-t border-pastoral-100 dark:border-slate-700 shrink-0">
-                <button onclick="openAddEventModalForDay()" class="glow-btn w-full bg-pastoral-700 hover:bg-pastoral-800 text-white py-2.5 rounded-lg font-bold text-xs transition min-h-[44px]">+ Add event for this day</button>
+                <button onclick="openAddEventModalForDay()" class="glow-btn w-full bg-pastoral-700 hover:bg-pastoral-800 text-white py-2.5 rounded-lg font-bold text-xs transition">+ Add event for this day</button>
             </div>
         </div>
     </div>
 
     <!-- Confirm Deletion Modal -->
-    <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-[60] p-3 sm:p-4">
-        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-y-auto max-h-[92svh] p-5 sm:p-6 text-center">
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-[60] p-4">
+        <div class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden p-6 text-center">
             <div id="confirmModalIconWrap" class="mx-auto bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-3">⚠️</div>
             <h3 id="confirmModalTitle" class="font-serif-display text-sm font-semibold mb-1">Confirm Deletion</h3>
             <p id="confirmModalMessage" class="text-[11px] text-slate-500 dark:text-slate-400 mb-5">Are you sure you want to delete this?</p>
-            <div class="flex flex-col-reverse sm:flex-row gap-2">
-                <button onclick="closeConfirmModal()" class="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 py-2.5 rounded-lg font-semibold transition min-h-[44px]">Cancel</button>
-                <button id="confirmModalActionBtn" class="flex-1 py-2.5 rounded-lg font-semibold transition min-h-[44px] bg-red-600 hover:bg-red-700 text-white">Yes, delete</button>
+            <div class="flex gap-2">
+                <button onclick="closeConfirmModal()" class="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 py-2.5 rounded-lg font-semibold transition min-h-[42px]">Cancel</button>
+                <button id="confirmModalActionBtn" class="flex-1 py-2.5 rounded-lg font-semibold transition min-h-[42px] bg-red-600 hover:bg-red-700 text-white">Yes, delete</button>
             </div>
         </div>
     </div>
