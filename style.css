@@ -193,12 +193,16 @@ html.dark .day-cell:hover { box-shadow: inset 0 0 0 1px rgba(var(--neon-a), .3),
 
 /* ============================================================
    NAVIGATION BAR — futuristic / sci-fi hover effect
+   Inactive tabs get a traveling neon border-scan + soft backlight
+   instead of a flat instant color swap; the tab-glow (active) tab
+   is excluded so it doesn't fight its own persistent glow on hover.
 ============================================================ */
 .tab-pill {
     position: relative;
     isolation: isolate;
     overflow: hidden;
 }
+/* Soft backlight fill, fades in behind the label */
 .tab-pill::before {
     content: '';
     position: absolute;
@@ -212,6 +216,8 @@ html.dark .day-cell:hover { box-shadow: inset 0 0 0 1px rgba(var(--neon-a), .3),
 html.dark .tab-pill::before { background: rgba(var(--neon-a), .12); }
 .tab-pill:not(.tab-glow):hover::before { opacity: 1; }
 
+/* Traveling neon border — a thin conic "scan" ring clipped to just the
+   pill's outline, like a HUD element powering on */
 .tab-pill::after {
     content: '';
     position: absolute;
@@ -295,186 +301,4 @@ html.dark .nav-action-btn:hover {
 html.dark .backup-card:hover {
     box-shadow: 0 0 14px 0 rgba(var(--neon-a), .15);
     border-color: rgba(var(--neon-a), .3);
-}
-
-/* ============================================================
-   RESPONSIVE + ACCESSIBILITY LAYER
-   Everything below is layout only — no feature, color, or data
-   behavior changes. Goal: the tracker stays fully usable from a
-   320px phone up to a 2560px monitor, with touch-friendly
-   targets and keyboard-visible focus.
-============================================================ */
-
-/* --- 1. No horizontal page scroll, ever --- */
-html, body {
-    max-width: 100%;
-    overflow-x: hidden;
-}
-.app-shell {
-    /* respects iPhone notch / home-indicator safe areas */
-    padding-left: max(0.5rem, env(safe-area-inset-left));
-    padding-right: max(0.5rem, env(safe-area-inset-right));
-    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
-}
-@media (min-width: 640px) {
-    .app-shell {
-        padding-left: max(1rem, env(safe-area-inset-left));
-        padding-right: max(1rem, env(safe-area-inset-right));
-    }
-}
-
-/* --- 2. Fluid base type ---
-   The body no longer carries a hardcoded text-xs; the base size now
-   grows with the viewport so the app doesn't look like a tiny card
-   on a 1600px+ monitor. */
-body {
-    font-size: clamp(12px, 0.35vw + 10.6px, 15px);
-    line-height: 1.5;
-    -webkit-text-size-adjust: 100%;
-}
-
-/* Scale the hardcoded micro-labels up on large displays. Cheaper and
-   safer than editing hundreds of utility classes one by one. */
-@media (min-width: 1280px) {
-    .text-\[9px\]  { font-size: 10px; }
-    .text-\[10px\] { font-size: 11px; }
-    .text-\[11px\] { font-size: 12px; }
-    .text-xs       { font-size: 13px; }
-}
-@media (min-width: 1536px) {
-    .text-\[9px\]  { font-size: 11px; }
-    .text-\[10px\] { font-size: 12px; }
-    .text-\[11px\] { font-size: 13px; }
-    .text-xs       { font-size: 14px; }
-    .text-sm       { font-size: 15px; }
-    .text-base     { font-size: 17px; }
-}
-
-/* --- 3. Touch targets (phones, tablets, touchscreen laptops) --- */
-@media (pointer: coarse) {
-    button:not(.swatch-btn),
-    .nav-action-btn,
-    .tab-pill {
-        min-height: 44px;
-    }
-    /* icon-only buttons: ✕, ✎, pagination arrows */
-    button.w-6, button.w-7, button.w-8 {
-        min-width: 44px;
-        min-height: 44px;
-    }
-    .swatch-btn { width: 34px; height: 34px; }
-    #themeSwatchGrid { gap: 10px; }
-}
-
-/* --- 4. Visible keyboard focus everywhere --- */
-:focus-visible {
-    outline: 2px solid rgb(var(--p600));
-    outline-offset: 2px;
-    border-radius: 6px;
-}
-html.dark :focus-visible { outline-color: rgb(var(--neon-a)); }
-
-/* --- 5. Inputs: stop iOS from auto-zooming on focus --- */
-@media (max-width: 640px) {
-    input, select, textarea, button { font-size: 16px; }
-    #pinInput { font-size: 20px; }
-}
-
-/* --- 6. Tab rail: swipeable on narrow screens, no ugly scrollbar --- */
-.tab-rail {
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    scroll-snap-type: x proximity;
-}
-.tab-rail::-webkit-scrollbar { display: none; }
-.tab-rail > .tab-pill { scroll-snap-align: center; }
-
-/* --- 7. Tables --- */
-.table-scroll { -webkit-overflow-scrolling: touch; }
-
-/* Desktop: let names breathe instead of squeezing every column */
-@media (min-width: 721px) {
-    table.responsive-table td[data-label="Member name"],
-    table.responsive-table td[data-label="Description"] {
-        white-space: normal;
-        word-break: break-word;
-    }
-}
-/* Wide screens: roomier rows so a 12-row table doesn't look lost */
-@media (min-width: 1536px) {
-    table.responsive-table td { padding-top: 1rem; padding-bottom: 1rem; }
-}
-/* Card mode on phones: action buttons wrap cleanly and stay tappable */
-@media (max-width: 720px) {
-    table.responsive-table td[data-label="Actions"] > div,
-    table.responsive-table td[data-label="Action"] > div {
-        width: 100%;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-        gap: 8px;
-    }
-    table.responsive-table td[data-label="Actions"] button {
-        min-height: 40px;
-        padding-left: 14px;
-        padding-right: 14px;
-    }
-}
-
-/* --- 8. Calendar sizing per breakpoint ---
-   #calendarGrid > div beats the inline Tailwind min-h-[90px] on
-   specificity, so cells can grow on big screens and shrink on phones
-   without touching renderCalendar() in script.js. */
-#calendarGrid > div { min-height: 76px; }
-@media (min-width: 640px)  { #calendarGrid > div { min-height: 96px; } }
-@media (min-width: 1024px) { #calendarGrid > div { min-height: 112px; } }
-@media (min-width: 1280px) { #calendarGrid > div { min-height: 128px; } }
-@media (min-width: 1536px) { #calendarGrid > div { min-height: 146px; } }
-
-/* Tablets: keep one readable event pill per day */
-@media (min-width: 641px) and (max-width: 1023px) {
-    #calendarGrid .event-pill-list > div:nth-child(n+2) { display: none; }
-    #calendarGrid .holiday-label { font-size: 9px; }
-}
-/* Landscape phones: shorter cells so a whole month still fits */
-@media (max-height: 480px) and (orientation: landscape) {
-    #calendarGrid > div { min-height: 52px; }
-}
-
-/* --- 9. Modals: always fit the screen, never trap content --- */
-.modal-panel {
-    width: 100%;
-    max-height: 92vh;   /* fallback for older browsers */
-    max-height: 92svh;  /* accounts for mobile browser chrome */
-}
-@media (max-height: 520px) {
-    .modal-panel { max-height: 96vh; }
-}
-[id$="Modal"] { overscroll-behavior: contain; }
-
-/* --- 10. Header buttons: even, tappable row on phones --- */
-@media (max-width: 480px) {
-    .header-btn { flex: 1 1 calc(50% - 0.5rem); }
-}
-
-/* --- 11. Ultra-wide screens: cap line length inside the app shell --- */
-@media (min-width: 1920px) {
-    .app-container { max-width: 1760px; }
-}
-
-/* --- 12. Respect reduced-motion preferences --- */
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
-        scroll-behavior: auto !important;
-    }
-}
-
-/* --- 13. Print: clean roster printout --- */
-@media print {
-    #pinModal, .header-texture .header-btn, .tab-rail, .nav-action-btn,
-    #memberPagination, #financePagination { display: none !important; }
-    body { background: white; padding: 0; }
-    .app-container { box-shadow: none; border: none; max-width: 100%; }
 }
