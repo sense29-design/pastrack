@@ -401,7 +401,7 @@ html.dark .nav-action-btn:hover {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-@media (max-width: 639px) {
+@media (max-width: 1023px) {
     #themePickerDropdown:not(.hidden) {
         position: fixed;
         left: 0; right: 0; bottom: 0; top: auto;
