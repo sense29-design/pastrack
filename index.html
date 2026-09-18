@@ -93,12 +93,12 @@
                     <button onclick="toggleThemePicker()" id="themePickerBtn" aria-haspopup="true" aria-expanded="false" class="header-btn bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg font-semibold text-xs transition flex items-center justify-center gap-1 shadow-sm" title="Change site color">
                         <i class="fi fi-rr-palette" aria-hidden="true"></i> Color
                     </button>
-                    <div id="themePickerDropdown" class="hidden sm:absolute sm:left-auto sm:right-0 sm:mt-2 sm:w-72 sm:max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 sm:rounded-xl shadow-2xl border border-pastoral-100 dark:border-slate-700 p-4 z-50" role="menu" aria-label="Color theme options">
-                        <div class="theme-sheet-handle sm:hidden"></div>
+                    <div id="themePickerDropdown" class="hidden lg:absolute lg:left-auto lg:right-0 lg:mt-2 lg:w-72 lg:max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 lg:rounded-xl shadow-2xl border border-pastoral-100 dark:border-slate-700 p-4 z-50" role="menu" aria-label="Color theme options">
+                        <div class="theme-sheet-handle lg:hidden"></div>
                         <div class="flex items-center justify-between mb-2 px-0.5">
-                            <p class="text-[10px] font-bold text-slate-400">Pick a background color</p>
-                            <button type="button" onclick="toggleThemePicker()" aria-label="Close color picker" class="sm:hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 px-1"><i class="fi fi-rr-cross-small"></i></button>
-                        </div>
+                        <p class="text-[10px] font-bold text-slate-400">Pick a background color</p>
+                        <button type="button" onclick="toggleThemePicker()" aria-label="Close color picker" class="lg:hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 px-1"><i class="fi fi-rr-cross-small"></i></button>
+                    </div>
                         <div class="theme-preview-strip"><span id="themePreviewLabel">Forest Green</span></div>
                         <div id="themeSwatchGrid" class="grid grid-cols-5 gap-3 place-items-center"></div>
                         <p class="text-[10px] text-slate-400 mt-3 px-0.5">Applies to the background &amp; accents in light mode. Dark mode stays as is.</p>
