@@ -29,6 +29,26 @@ function logoutSession() {
 
 checkSession();
 
+// --- Body scroll lock while any modal is open ---
+// Every overlay in this app uses an id ending in "Modal" (pinModal,
+// formationModal, addModal, confirmModal, formationMembersModal, etc.).
+// Whenever ANY of them is visible (has the "flex" class the open/close
+// functions toggle), the page behind it should stop scrolling — instead of
+// only the modal panel itself scrolling. A MutationObserver watches every
+// modal's class attribute so this works automatically for every current
+// and future modal, without having to edit each individual open/close
+// function.
+function isAnyModalOpen() {
+    return Array.from(document.querySelectorAll('[id$="Modal"]')).some(el => el.classList.contains('flex'));
+}
+function refreshBodyScrollLock() {
+    document.body.classList.toggle('modal-open-lock', isAnyModalOpen());
+}
+document.querySelectorAll('[id$="Modal"]').forEach(el => {
+    new MutationObserver(refreshBodyScrollLock).observe(el, { attributes: true, attributeFilter: ['class'] });
+});
+refreshBodyScrollLock();
+
 const firebaseConfig = {
     apiKey: "AIzaSyAf36moKYjsjKNGX23bVoI0k-caXYf0lMI",
     authDomain: "yfc-pastoral-tracker.firebaseapp.com",
@@ -67,8 +87,6 @@ let backups = JSON.parse(localStorage.getItem(BACKUPS_KEY)) || [];
 let currentActiveMemberId = null;
 
 // --- Formation modal: unsaved-changes tracking ---
-// Toggling a formation inside the modal now only edits this local copy.
-// Nothing is written to Firestore until the user explicitly saves.
 let formationPendingProgress = null;
 let formationModalDirty = false;
 
@@ -181,18 +199,14 @@ document.addEventListener('keydown', function (e) {
 applyColorTheme(localStorage.getItem(COLOR_THEME_KEY) || 'green', false);
 buildThemeSwatchGrid();
 
-// --- Confirm Action Modal (shared by destructive deletes AND non-destructive
-// actions like "Restore backup"). Every caller now explicitly describes its
-// own title / icon / button label / color so a restore no longer gets
-// mislabeled as a "Confirm Deletion" with a red "Yes, delete" button — the
-// bug where restoring a backup showed delete-styled copy. ---
+// --- Confirm Action Modal ---
 let _confirmDeleteCallback = null;
 
 function showConfirmModal(message, callback, options = {}) {
     const {
         title = 'Confirm Deletion',
         confirmLabel = 'Yes, delete',
-        variant = 'danger', // 'danger' (red, for destructive/irreversible actions) or 'primary' (brand color, for safe/reversible actions like restore)
+        variant = 'danger',
         icon = '⚠️'
     } = options;
 
@@ -238,7 +252,6 @@ updateLiveClock();
 
 // --- Real-time Sync Listeners (Members, Finance, Calendar) ---
 function initRealtimeSync() {
-    // Members Sync
     db.collection("members").onSnapshot((snapshot) => {
         members = [];
         snapshot.forEach((doc) => {
@@ -252,7 +265,6 @@ function initRealtimeSync() {
         document.getElementById('lastUpdated').innerText = "Cloud sync error!";
     });
 
-    // Finance Sync
     db.collection("finance").onSnapshot((snapshot) => {
         financeTransactions = [];
         snapshot.forEach((doc) => {
@@ -263,7 +275,6 @@ function initRealtimeSync() {
         console.error("Error getting finance: ", error);
     });
 
-    // Calendar Sync
     db.collection("calendar").onSnapshot((snapshot) => {
         calendarEvents = [];
         snapshot.forEach((doc) => {
@@ -307,7 +318,6 @@ function logActivity(description) {
     renderHistoryLogs();
 }
 
-// --- Activity history: icon/color classification per action type ---
 function getActivityMeta(desc) {
     const d = (desc || '').toLowerCase();
     if (d.startsWith('deleted')) {
@@ -345,7 +355,6 @@ function formatHistoryDateHeader(ts) {
     return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
-// Groups the (already newest-first) log list into same-day buckets, preserving order.
 function groupHistoryByDay(list) {
     const groups = [];
     let currentKey = null;
@@ -414,9 +423,6 @@ function renderHistoryLogs() {
 }
 
 // --- Backup snapshot helpers ---
-// A "full" snapshot captures all three cloud-synced collections together so a
-// single saved backup (or exported file) can restore the whole tracker, not
-// just the member roster.
 function buildFullSnapshot() {
     return {
         members: JSON.parse(JSON.stringify(members)),
@@ -425,8 +431,6 @@ function buildFullSnapshot() {
     };
 }
 
-// Older backups (pre-redesign) stored `data` as a bare array of members.
-// These helpers understand both shapes so nothing already saved is lost.
 function getBackupCounts(backup) {
     if (Array.isArray(backup.data)) {
         return { members: backup.data.length, finance: 0, calendar: 0 };
@@ -515,9 +519,6 @@ function deleteBackup(index) {
     );
 }
 
-// Wipes a cloud collection and re-populates it from a backup's records.
-// Used by restoreBackup() so a restore puts the tracker back exactly how it
-// looked at backup time, instead of merging on top of current data.
 async function replaceCollection(collectionName, newDocs) {
     const snapshot = await db.collection(collectionName).get();
     await Promise.all(snapshot.docs.map(doc => doc.ref.delete()));
@@ -532,10 +533,6 @@ function restoreBackup(index) {
     const b = backups[index];
     if (!b) return;
     const counts = getBackupCounts(b);
-    // Restoring is a data-safety action, not a destructive one — it uses the
-    // same shared confirm modal as delete, but with its own title, icon,
-    // brand-colored (not red) button, and "Yes, restore" label so it no
-    // longer reads as "Confirm Deletion" / "Yes, delete".
     showConfirmModal(
         `Restore "${b.label}" from ${b.time}? This will REPLACE all current members, finance records, and calendar events with this backup's data (${counts.members} members, ${counts.finance} transactions, ${counts.calendar} events).`,
         async () => {
@@ -575,15 +572,15 @@ function calculateAge(birthdayStr) {
     return `${age} yrs old`;
 }
 
+// Sets a sidebar tab button's active/inactive visual state. The base
+// "sidebar-tab" class (icon + label layout, mobile pill / desktop list item)
+// is already on the button in the HTML — this only toggles the active
+// highlight modifier class, so the same markup works at every breakpoint.
 function setTabButtonState(btn, active) {
-    if (active) {
-        btn.className = "tab-pill tab-glow flex-1 sm:flex-none whitespace-nowrap px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5 bg-pastoral-800 text-white shadow-sm";
-    } else {
-        btn.className = "tab-pill flex-1 sm:flex-none whitespace-nowrap px-4 py-2 rounded-full font-semibold text-[11px] flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-pastoral-800 dark:hover:text-emerald-400";
-    }
+    btn.classList.toggle('sidebar-tab-active', active);
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
 }
 
-// Runs whichever render function(s) a given tab needs whenever it becomes visible.
 function runTabRenderers(tab) {
     if (tab === 'members') renderTable();
     if (tab === 'formations') renderFormationSummary();
@@ -592,9 +589,6 @@ function runTabRenderers(tab) {
     if (tab === 'history') { renderHistoryLogs(); renderBackupList(); }
 }
 
-// Switching tabs now cross-fades the outgoing panel out and the incoming
-// panel in (instead of an abrupt hidden/block swap), for a smoother
-// "loading a HUD screen" feel.
 function switchTab(tab) {
     const btns = {
         members: document.getElementById('tabBtnMembers'),
@@ -625,8 +619,6 @@ function switchTab(tab) {
 
             nextEl.classList.remove('hidden');
             nextEl.classList.add('tab-transition-in');
-            // Force a reflow so the browser registers the starting state
-            // before the "-active" class kicks off the animation.
             void nextEl.offsetWidth;
             nextEl.classList.add('tab-transition-in-active');
             setTimeout(() => {
@@ -642,8 +634,6 @@ function switchTab(tab) {
 }
 
 // --- Generic pagination bar builder ---
-// Renders a single, centered control: [‹ Prev] [Page X of Y — A–B of Z] [Next ›]
-// Everything lives in one row at the bottom of the table — nothing is split to opposite sides.
 function buildPaginationControls(containerId, totalItems, perPage, currentPage, onPageChange) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -788,10 +778,6 @@ const eventCategories = {
 };
 let _dayDetailDateStr = null;
 
-// --- Official Philippine holidays (regular + special non-working) ---
-// Source: Malacañang Proclamation No. 727 (2025) and Proclamation No. 1006 (2026).
-// Movable dates (Holy Week, Chinese New Year, Eid'l Fitr/Adha) are fixed per year
-// and will need a small yearly update once the next proclamation is issued.
 const officialHolidays = {
     "2025-01-01": "New Year's Day",
     "2025-01-29": "Chinese New Year",
@@ -872,8 +858,6 @@ function openAddEventModalForDay() {
     openAddEventModal(_dayDetailDateStr);
 }
 
-// Open the same modal pre-filled with an existing event's details so its
-// date, title, or category can be edited in place (updates the doc, doesn't duplicate it).
 function openEditEventModal(firebaseId) {
     const ev = calendarEvents.find(x => x.firebaseId === firebaseId);
     if (!ev) return;
@@ -913,7 +897,6 @@ async function saveCalendarEvent(e) {
             logActivity(`Added calendar event: ${title} on ${date}`);
         }
         closeAddEventModal();
-        // If the day detail modal is showing the affected date, refresh it live.
         if (document.getElementById('dayDetailModal').classList.contains('flex') && _dayDetailDateStr === date) {
             renderDayDetailList(date);
         }
@@ -953,12 +936,6 @@ function renderCalendar() {
     const grid = document.getElementById('calendarGrid');
     const titleEl = document.getElementById('calendarMonthTitle');
     if (!grid || !titleEl) return;
-    // NOTE: we no longer rely on Tailwind's divide-x/divide-y here — for a
-    // wrapping CSS grid it only borders "every child after the first" in DOM
-    // order, which misses lines whenever the last row doesn't fill all 7
-    // columns. Every cell now carries its own right/bottom border instead,
-    // and the grid is always padded out to a full multiple of 7 cells so the
-    // last week's boundaries are drawn too.
     grid.className = "grid grid-cols-7 text-xs compact-mobile border-t border-l border-pastoral-100 dark:border-slate-700";
     grid.innerHTML = '';
     renderCalendarLegend();
@@ -1022,8 +999,6 @@ function renderCalendar() {
         grid.appendChild(cell);
     }
 
-    // Pad the final week out to a full 7 columns so its bottom/right
-    // boundaries are drawn just like every other week.
     const totalCellsSoFar = firstDayIndex + totalDays;
     const trailingCells = (7 - (totalCellsSoFar % 7)) % 7;
     for (let i = 0; i < trailingCells; i++) {
@@ -1081,6 +1056,14 @@ function getCompletedFormationsCount(member) {
         }
     });
     return count;
+}
+
+// Whether a given member has fully completed a given formation code.
+function memberCompletedFormation(member, formation) {
+    if (!member.progress) return false;
+    const talksAttended = member.progress[formation.code];
+    if (!Array.isArray(talksAttended)) return false;
+    return talksAttended.filter(Boolean).length === formation.talks;
 }
 
 function handleSearchInput() {
@@ -1171,18 +1154,20 @@ function renderTable() {
     buildPaginationControls('memberPagination', filtered.length, MEMBERS_PER_PAGE, memberPage, goToMemberPage);
 }
 
+// --- Formation tracks tab: summary rows + a "who's done this" member
+// roster. Clicking the member-count badge opens a dedicated modal (like the
+// Edit Member modal) listing everyone who completed that track. Using a
+// modal instead of expanding the row in place keeps the Formation tracks
+// page compact and readable no matter how many members are on the roster.
 function renderFormationSummary() {
     const tbody = document.getElementById('formationSummaryBody');
     if (!tbody) return;
     tbody.innerHTML = '';
 
     formationsData.forEach(f => {
-        const completedMembers = members.filter(m => {
-            if (!m.progress || !m.progress[f.code]) return false;
-            const talksAttended = m.progress[f.code];
-            const attendedCount = Array.isArray(talksAttended) ? talksAttended.filter(Boolean).length : 0;
-            return attendedCount === f.talks;
-        });
+        const completedMembers = members
+            .filter(m => memberCompletedFormation(m, f))
+            .sort((a, b) => a.lastName.localeCompare(b.lastName));
         const count = completedMembers.length;
 
         const tr = document.createElement('tr');
@@ -1192,13 +1177,48 @@ function renderFormationSummary() {
             <td data-label="Formation track" class="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">${f.label}</td>
             <td data-label="# talks" class="py-3 px-4 text-center font-mono text-slate-600 dark:text-slate-400">${f.talks}</td>
             <td data-label="Completed count" class="py-3 px-4 text-center">
-                <span class="inline-block bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 font-extrabold px-3 py-1 rounded-full text-[11px]">
-                    ${count} member${count === 1 ? '' : 's'}
-                </span>
+                <button type="button" onclick="openFormationMembersModal('${f.code}')" class="formation-count-btn" title="Click to view members">
+                    <span class="formation-count-label">${count} member${count === 1 ? '' : 's'}</span>
+                    <i class="fi fi-rr-eye formation-count-chevron" aria-hidden="true"></i>
+                </button>
             </td>
         `;
         tbody.appendChild(tr);
     });
+}
+
+// Opens the formation-members modal for a given track code and fills it
+// with the sorted roster of members who have completed it.
+function openFormationMembersModal(code) {
+    const f = formationsData.find(x => x.code === code);
+    if (!f) return;
+    const completedMembers = members
+        .filter(m => memberCompletedFormation(m, f))
+        .sort((a, b) => a.lastName.localeCompare(b.lastName));
+    const count = completedMembers.length;
+
+    document.getElementById('formationMembersModalTitle').innerText = `${f.code} — ${f.label}`;
+    document.getElementById('formationMembersModalSubtitle').innerText =
+        count === 0 ? 'No members have completed this track yet.' : `${count} member${count === 1 ? '' : 's'} completed this track`;
+
+    const listEl = document.getElementById('formationMembersModalList');
+    listEl.innerHTML = count === 0
+        ? `<p class="text-[11px] text-slate-400 italic text-center py-6">No members have completed this track yet.</p>`
+        : `<div class="formation-members-grid">${completedMembers.map(m => `
+                <div class="formation-member-item">
+                    <span class="fm-name">${m.lastName}, ${m.firstName}</span>
+                    ${m.nickname ? `<span class="fm-nick">"${m.nickname}"</span>` : ''}
+                    <span class="fm-chapter">${m.chapter}</span>
+                </div>
+            `).join('')}</div>`;
+
+    document.getElementById('formationMembersModal').classList.remove('hidden');
+    document.getElementById('formationMembersModal').classList.add('flex');
+}
+
+function closeFormationMembersModal() {
+    document.getElementById('formationMembersModal').classList.add('hidden');
+    document.getElementById('formationMembersModal').classList.remove('flex');
 }
 
 function openFormationModal(firebaseId) {
@@ -1214,9 +1234,6 @@ function openFormationModal(firebaseId) {
         <div><span class="text-slate-400 block font-bold text-[9px] uppercase">Chapter</span><span class="font-semibold text-slate-800 dark:text-slate-200">${member.chapter}</span></div>
     `;
 
-    // Take a private working copy of this member's progress. Every toggle inside
-    // the modal edits ONLY this copy — nothing touches Firestore until the user
-    // explicitly saves (via "Save & Close" or the unsaved-changes prompt).
     if (!member.progress) member.progress = {};
     formationsData.forEach(f => {
         if (!Array.isArray(member.progress[f.code]) || member.progress[f.code].length !== f.talks) {
@@ -1261,7 +1278,6 @@ function renderModalFormations() {
     updateFormationModalDirtyBadge();
 }
 
-// Toggling only edits the in-memory pending copy — no cloud write happens here.
 function toggleCompleteFormation(formationIndex) {
     const f = formationsData[formationIndex];
     if (!formationPendingProgress) return;
@@ -1275,15 +1291,12 @@ function toggleCompleteFormation(formationIndex) {
     renderModalFormations();
 }
 
-// Shows a small "unsaved changes" indicator in the modal footer so the user
-// always knows whether their taps have actually been saved yet.
 function updateFormationModalDirtyBadge() {
     const badge = document.getElementById('formationDirtyBadge');
     if (!badge) return;
     badge.classList.toggle('hidden', !formationModalDirty);
 }
 
-// Writes the pending copy to Firestore and logs exactly which formations changed.
 function persistFormationChanges() {
     const member = members.find(m => m.firebaseId === currentActiveMemberId);
     if (!member || !formationPendingProgress) return;
@@ -1318,16 +1331,12 @@ function hideFormationModalEl() {
     formationModalDirty = false;
 }
 
-// Bound to the "Save & Close" footer button — an explicit save action, so it
-// saves immediately without prompting.
 function saveAndCloseFormationModal() {
     if (formationModalDirty) persistFormationChanges();
     hideFormationModalEl();
     renderTable();
 }
 
-// Bound to the "✕" button. If there are unsaved toggles, ask first instead of
-// silently saving OR silently discarding.
 function requestCloseFormationModal() {
     if (formationModalDirty) {
         document.getElementById('formationUnsavedModal').classList.remove('hidden');
@@ -1468,7 +1477,6 @@ function handleSaveMember(e) {
     const birthday = document.getElementById('addBirthday').value;
     const chapter = document.getElementById('addChapter').value;
 
-    // Normalize progress arrays to the correct talk counts before saving
     const progressToSave = {};
     formationsData.forEach(f => {
         const existing = addFormProgress[f.code];
@@ -1518,9 +1526,6 @@ function deleteMember(firebaseId) {
 }
 
 // --- Export / Import (full tracker backup) ---
-// The exported file now bundles members, finance transactions AND calendar
-// events together, so a single JSON file is a complete snapshot of the
-// tracker instead of just the member roster.
 function exportData() {
     const payload = {
         type: 'yfc-pastoral-tracker-backup',
@@ -1554,8 +1559,6 @@ function importData(event) {
             return;
         }
 
-        // Supports both the new full-backup shape and the older
-        // members-only array shape from previous versions of this tracker.
         let membersToImport = [];
         let financeToImport = [];
         let calendarToImport = [];
@@ -1591,8 +1594,6 @@ function importData(event) {
             event.target.value = '';
         }, { title: 'Confirm Import', confirmLabel: 'Yes, import', variant: 'primary', icon: '📂' });
 
-        // If the user cancels the confirm modal, still clear the file input
-        // so re-selecting the same file later fires the change event again.
         event.target.value = '';
     };
 }
