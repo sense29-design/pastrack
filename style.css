@@ -12,18 +12,24 @@
 body { font-family: 'Inter', ui-sans-serif, system-ui; }
 .font-serif-display { font-family: 'Fraunces', ui-serif, Georgia; }
 
+/* Background scroll lock — toggled by script.js whenever any [id$="Modal"]
+   overlay is visible, so the page underneath a popup can no longer be
+   scrolled (desktop wheel/keyboard AND mobile touch). */
+body.modal-open-lock {
+    overflow: hidden;
+    height: 100%;
+    touch-action: none;
+}
+/* The overlay backdrop itself may still need to scroll on very short
+   screens (so a tall modal isn't clipped) — allow that, but stop the
+   scroll from "chaining" through to the page behind it. */
+[id$="Modal"].flex {
+    overscroll-behavior: contain;
+    touch-action: auto;
+}
+
 /* ============================================================
    MOBILE AUDIT FIXES
-   1) Readability floor — Tailwind's arbitrary text-[10px]/[11px]
-      utilities are used heavily for labels/nav. On real phones
-      (vs. desktop preview) this reads as illegibly small and
-      fails WCAG's comfortable-reading guidance. Bump the floor
-      site-wide without touching every class in the markup.
-   2) Touch targets — nav tab pills, header icon buttons and the
-      nav-action (Export/Import) buttons had no explicit height
-      and were sizing purely off text-[11px] + py-2, landing
-      around 32–34px tall — under the 44px minimum recommended
-      for touch (Apple HIG / WCAG 2.5.5).
 ============================================================ */
 @media (max-width: 767px) {
     .text-\[10px\] { font-size: 11.5px !important; }
@@ -36,12 +42,6 @@ body { font-family: 'Inter', ui-sans-serif, system-ui; }
 
 /* ============================================================
    STANDARDIZED CONTENT HEADER
-   Used by Finance, Calendar and History tabs so the three pages
-   share one structural rhythm: same padding, same title size/
-   weight, same gap before the row of controls, same divider
-   treatment. Members/Formations already matched this shape;
-   History previously skipped it entirely and went straight into
-   a two-column grid with its own smaller sub-headers.
 ============================================================ */
 .tab-page-header {
     display: flex;
@@ -69,9 +69,6 @@ html.dark .tab-page-header { border-bottom-color: rgb(51 65 85); }
     color: rgb(148 163 184);
     margin-top: 2px;
 }
-/* Sub-panel headers inside a standardized page (e.g. the two History
-   columns) share a smaller, consistent second-level treatment so they
-   don't compete visually with .tab-page-title above them. */
 .tab-panel-heading {
     font-family: 'Fraunces', ui-serif, Georgia;
     font-size: 0.85rem;
@@ -158,9 +155,6 @@ html.dark ::-webkit-scrollbar-thumb { background: rgba(var(--neon-a),.35); }
 
 /* ============================================================
    FUTURISTIC / NEON ACCENT LAYER
-   Adds smooth motion + glow accents on top of the existing
-   clean pastoral theme. Light mode = soft accent-colored glow.
-   Dark mode = crisp cyan/violet neon glow for a dashboard feel.
 ============================================================ */
 :root {
     --neon-a: 34 211 238;   /* cyan */
@@ -169,21 +163,18 @@ html.dark ::-webkit-scrollbar-thumb { background: rgba(var(--neon-a),.35); }
 
 * { scroll-behavior: smooth; }
 
-/* Universal smooth motion for anything interactive */
 button, a, input, select, textarea, .tab-pill, .swatch-btn, .day-cell,
 .glow-btn, .stat-card, [id$="Modal"] > div, .event-pill-list > div {
     transition: background-color .22s ease, border-color .22s ease, color .22s ease,
                 box-shadow .28s cubic-bezier(.4,0,.2,1), transform .18s cubic-bezier(.4,0,.2,1), opacity .22s ease;
 }
 
-/* Primary action glow — subtle accent glow in light mode, neon in dark mode */
 .glow-btn { box-shadow: 0 2px 10px -2px rgba(var(--p700), .35); }
 .glow-btn:hover { transform: translateY(-1px); box-shadow: 0 0 16px 1px rgba(var(--p600), .5), 0 6px 18px -4px rgba(var(--p800), .45); }
 .glow-btn:active { transform: translateY(0) scale(.97); }
 html.dark .glow-btn { box-shadow: 0 0 0 rgba(0,0,0,0); }
 html.dark .glow-btn:hover { box-shadow: 0 0 18px 2px rgba(var(--neon-a), .55), 0 0 34px 6px rgba(var(--neon-b), .25); }
 
-/* Neon-tinted focus states — replaces flat focus rings with a soft glow */
 input:focus, select:focus, textarea:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(var(--p600), .18), 0 0 14px 0 rgba(var(--p600), .22);
@@ -192,11 +183,9 @@ html.dark input:focus, html.dark select:focus, html.dark textarea:focus {
     box-shadow: 0 0 0 3px rgba(var(--neon-a), .3), 0 0 16px 1px rgba(var(--neon-a), .4);
 }
 
-/* Active tab — glowing underline energy */
 .tab-glow { box-shadow: 0 0 14px -2px rgba(var(--p600), .55); }
 html.dark .tab-glow { box-shadow: 0 0 16px 0 rgba(var(--neon-a), .5), 0 0 30px 4px rgba(var(--neon-b), .18); }
 
-/* Today badge on the calendar — soft pulse of light */
 .day-cell.is-today .day-number-badge {
     box-shadow: 0 0 0 2px rgba(var(--p700), .2), 0 0 12px 1px rgba(var(--p600), .55);
     animation: neonPulse 2.6s ease-in-out infinite;
@@ -209,11 +198,9 @@ html.dark .day-cell.is-today .day-number-badge {
     50% { filter: brightness(1.18); }
 }
 
-/* Stat / summary cards lift slightly on hover for a tactile dashboard feel */
 .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -8px rgba(var(--p800), .35); }
 html.dark .stat-card:hover { box-shadow: 0 0 18px 0 rgba(var(--neon-a), .18); }
 
-/* Header underline — thin gradient energy line, futuristic but understated */
 .header-texture { position: relative; }
 .header-texture::after {
     content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
@@ -225,7 +212,6 @@ html.dark .header-texture::after {
     opacity: .85;
 }
 
-/* Modal entrance — smooth pop instead of an abrupt appearance */
 @keyframes modalPop {
     from { opacity: 0; transform: scale(.94) translateY(10px); }
     to   { opacity: 1; transform: scale(1) translateY(0); }
@@ -235,9 +221,7 @@ html.dark .header-texture::after {
 @keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
 
 /* ============================================================
-   TAB PANEL TRANSITIONS — smooth HUD-style fade/slide instead of
-   an instant show/hide swap. Driven by switchTab() in script.js,
-   which adds/removes these classes around the visibility toggle.
+   TAB PANEL TRANSITIONS
 ============================================================ */
 [id^="tabContent"]:not(.hidden) { animation: fadeInUp .32s cubic-bezier(.4,0,.2,1); }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -247,48 +231,105 @@ html.dark .header-texture::after {
     100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 
-/* Calendar day cells: gentle lift + glow instead of a flat hover fill */
 .day-cell:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px rgba(var(--p600), .3); }
 html.dark .day-cell:hover { box-shadow: inset 0 0 0 1px rgba(var(--neon-a), .3), 0 0 10px 0 rgba(var(--neon-a), .12); }
 
-/* Event pills: micro-interaction for a livelier, minimal-but-alive dashboard */
 .event-pill-list > div:hover { transform: translateX(1px); filter: brightness(1.05); }
 
-/* Swatch buttons already animate scale; add a soft glow ring on active */
 .swatch-btn.active { box-shadow: 0 0 0 2px rgb(var(--p700)), 0 0 10px 1px rgba(var(--p600), .5); }
 
 /* ============================================================
-   NAVIGATION BAR — futuristic / sci-fi hover effect
-   Inactive tabs get a traveling neon border-scan + soft backlight
-   instead of a flat instant color swap; the tab-glow (active) tab
-   is excluded so it doesn't fight its own persistent glow on hover.
+   SIDEBAR NAVIGATION
+   Tabs now live in a left-hand sidebar (aside#sidebarNav) instead of a
+   top horizontal bar. On phones/tablets (below lg) the sidebar sits above
+   the content as a horizontal scrollable row — visually close to the old
+   layout. From `lg` upward it becomes a real vertical rail down the left
+   side of the app, icon + label stacked as list items, matching a
+   dashboard-style "app shell" (folders/sections down the side, content to
+   the right).
 ============================================================ */
-.tab-pill {
+.sidebar-nav {
+    flex-shrink: 0;
+}
+@media (min-width: 1024px) {
+    .sidebar-nav {
+        width: 224px;
+        min-width: 224px;
+    }
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: rgb(var(--p100));
+    margin: 0.25rem 0;
+}
+html.dark .sidebar-divider { background: rgb(51 65 85); }
+
+/* Individual tab button — a compact pill on mobile, a full-width list item
+   with left-aligned icon + label on desktop. */
+.sidebar-tab {
     position: relative;
     isolation: isolate;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 11px;
+    color: rgb(100 116 139);
+    background: transparent;
 }
-/* Soft backlight fill, fades in behind the label */
-.tab-pill::before {
+html.dark .sidebar-tab { color: rgb(148 163 184); }
+.sidebar-tab i { font-size: 13px; }
+
+@media (min-width: 1024px) {
+    .sidebar-tab {
+        justify-content: flex-start;
+        width: 100%;
+        border-radius: 0.65rem;
+        padding: 0.65rem 0.85rem;
+        font-size: 12px;
+    }
+    .sidebar-tab i { font-size: 14px; width: 16px; text-align: center; }
+}
+
+.sidebar-tab:hover { background: rgb(var(--p50)); color: rgb(var(--p800)); }
+html.dark .sidebar-tab:hover { background: rgba(var(--neon-a), .1); color: rgb(226 232 240); }
+
+.sidebar-tab-active {
+    background: rgb(var(--p800));
+    color: white;
+    box-shadow: 0 0 14px -2px rgba(var(--p600), .55);
+}
+.sidebar-tab-active:hover { background: rgb(var(--p800)); color: white; }
+html.dark .sidebar-tab-active {
+    background: rgb(var(--p700));
+    box-shadow: 0 0 16px 0 rgba(var(--neon-a), .4), 0 0 28px 4px rgba(var(--neon-b), .16);
+}
+html.dark .sidebar-tab-active:hover { background: rgb(var(--p700)); color: white; }
+
+/* Backlight + traveling neon scan, same idea as the old top-nav pills */
+.sidebar-tab::before {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 9999px;
+    border-radius: inherit;
     background: rgb(var(--p100));
     opacity: 0;
     transition: opacity .25s ease;
     z-index: -2;
 }
-html.dark .tab-pill::before { background: rgba(var(--neon-a), .12); }
-.tab-pill:not(.tab-glow):hover::before { opacity: 1; }
+html.dark .sidebar-tab::before { background: rgba(var(--neon-a), .12); }
+.sidebar-tab:not(.sidebar-tab-active):hover::before { opacity: 1; }
 
-/* Traveling neon border — a thin conic "scan" ring clipped to just the
-   pill's outline, like a HUD element powering on */
-.tab-pill::after {
+.sidebar-tab::after {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 9999px;
+    border-radius: inherit;
     padding: 1.5px;
     background: conic-gradient(from var(--scan-angle, 0deg),
         transparent 0deg,
@@ -307,7 +348,7 @@ html.dark .tab-pill::before { background: rgba(var(--neon-a), .12); }
     animation: navScan 1.8s linear infinite;
     animation-play-state: paused;
 }
-html.dark .tab-pill::after {
+html.dark .sidebar-tab::after {
     background: conic-gradient(from var(--scan-angle, 0deg),
         transparent 0deg,
         rgba(var(--neon-a), 1) 40deg,
@@ -316,7 +357,7 @@ html.dark .tab-pill::after {
         transparent 140deg,
         transparent 360deg);
 }
-.tab-pill:not(.tab-glow):hover::after {
+.sidebar-tab:not(.sidebar-tab-active):hover::after {
     opacity: 1;
     animation-play-state: running;
 }
@@ -330,16 +371,20 @@ html.dark .tab-pill::after {
     to   { --scan-angle: 360deg; }
 }
 
-.tab-pill:not(.tab-glow):hover {
+.sidebar-tab:not(.sidebar-tab-active):hover {
     transform: translateY(-1px);
     box-shadow: 0 0 10px -2px rgba(var(--p600), .5);
 }
-html.dark .tab-pill:not(.tab-glow):hover {
+html.dark .sidebar-tab:not(.sidebar-tab-active):hover {
     box-shadow: 0 0 12px 0 rgba(var(--neon-a), .5), 0 0 22px 3px rgba(var(--neon-b), .22);
 }
-.tab-pill:not(.tab-glow):active { transform: translateY(0) scale(.97); }
+.sidebar-tab:not(.sidebar-tab-active):active { transform: translateY(0) scale(.97); }
 
-/* Quick data-action buttons in the nav bar (Export / Import / Back up now) */
+@media (min-width: 1024px) {
+    .sidebar-tab:not(.sidebar-tab-active):hover { transform: translateX(2px); }
+}
+
+/* Quick data-action buttons (Export / Import) */
 .nav-action-btn {
     transition: background-color .2s ease, border-color .2s ease, color .2s ease,
                 box-shadow .25s cubic-bezier(.4,0,.2,1), transform .18s cubic-bezier(.4,0,.2,1);
@@ -357,18 +402,6 @@ html.dark .nav-action-btn:hover {
 
 /* ============================================================
    MODERNIZED OPTIONS MENU (color-theme picker)
-   Old version: a small absolute dropdown (w-60) anchored to the
-   button, which on narrow phones could clip against the screen
-   edge, had no sense of "what's active" beyond a thin ring on
-   the swatch, and no preview of the change before/without
-   committing.
-   New version:
-   - Desktop/tablet: same anchored popover, but wider, with a
-     live preview strip + labelled swatches.
-   - Phone (<640px): promotes to a bottom sheet (fixed to the
-     viewport bottom, full-width, slide-up), which is the
-     standard, thumb-friendly mobile pattern for this kind of
-     option picker instead of a tiny floating card.
 ============================================================ */
 #themePickerDropdown { z-index: 60; }
 .theme-preview-strip {
@@ -415,16 +448,13 @@ html.dark .nav-action-btn:hover {
         box-shadow: 0 -10px 30px -8px rgba(0,0,0,.25);
         animation: sheetSlideUp .22s cubic-bezier(.16,1,.3,1);
     }
-    /* dim the page behind the sheet on mobile */
     #themePickerDropdown:not(.hidden)::before {
         content: '';
         position: fixed;
         inset: 0;
         background: rgba(15,23,42,.45);
         z-index: -1;
-        pointer-events: none; /* clicks pass through to the page so the
-                                  existing outside-click-to-close listener
-                                  in script.js still fires correctly */
+        pointer-events: none;
     }
     #themePickerDropdown .theme-sheet-handle { display: block; }
 }
@@ -452,4 +482,88 @@ html.dark .theme-sheet-handle { background: rgb(71 85 105); }
 html.dark .backup-card:hover {
     box-shadow: 0 0 14px 0 rgba(var(--neon-a), .15);
     border-color: rgba(var(--neon-a), .3);
+}
+
+/* ============================================================
+   FORMATION TRACKS — member roster
+   The member-count badge is a button that opens a dedicated modal (styled
+   like the Edit Member modal) listing everyone who completed that track.
+   Keeping the roster in its own modal — instead of expanding inline —
+   means the Formation tracks page stays short and readable even once a
+   lot of members are added.
+============================================================ */
+.formation-count-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 11px;
+    font-weight: 800;
+    color: rgb(6 95 70);
+    background: rgb(209 250 229);
+    border: 1px solid transparent;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    line-height: 1.1;
+    transition: background-color .18s ease, transform .15s ease, box-shadow .2s ease;
+}
+.formation-count-btn:hover { background: rgb(167 243 208); transform: translateY(-1px); }
+.formation-count-btn:active { transform: translateY(0) scale(.97); }
+html.dark .formation-count-btn {
+    color: rgb(110 231 183);
+    background: rgba(16, 185, 129, .16);
+}
+html.dark .formation-count-btn:hover { background: rgba(16, 185, 129, .26); }
+.formation-count-label { white-space: nowrap; }
+.formation-count-chevron { font-size: 10px; opacity: .8; }
+
+/* A real grid (not wrapped pills of varying width) keeps every member's
+   name, nickname and chapter lined up neatly instead of reading as a
+   jumble of differently-sized chips. */
+.formation-members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+.formation-member-item {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    background: white;
+    border: 1px solid rgb(var(--p100));
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    line-height: 1.3;
+}
+html.dark .formation-member-item {
+    background: rgb(30 41 59);
+    border-color: rgb(51 65 85);
+}
+.formation-member-item .fm-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgb(30 41 59);
+}
+html.dark .formation-member-item .fm-name { color: rgb(241 245 249); }
+.formation-member-item .fm-nick {
+    font-size: 10px;
+    font-style: italic;
+    color: rgb(148 163 184);
+}
+.formation-member-item .fm-chapter {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: rgb(var(--p700));
+    background: rgb(var(--p50));
+    border-radius: 5px;
+    padding: 0.15rem 0.4rem;
+    white-space: nowrap;
+}
+html.dark .formation-member-item .fm-chapter {
+    color: rgb(110 231 183);
+    background: rgba(16, 185, 129, .12);
 }
