@@ -50,9 +50,123 @@ function refreshBodyScrollLock() {
     document.body.classList.toggle('modal-open-lock', isAnyModalOpen());
 }
 document.querySelectorAll('[id$="Modal"]').forEach(el => {
-    new MutationObserver(refreshBodyScrollLock).observe(el, { attributes: true, attributeFilter: ['class'] });
+    el.setAttribute('tabindex', '-1');
+    new MutationObserver(() => {
+        refreshBodyScrollLock();
+        // Give the popup focus as soon as it opens, so arrow keys / Page Down /
+        // wheel scroll it right away instead of needing a click first.
+        // (Skipped if an input inside it already grabbed focus.)
+        const isOpen = el.classList.contains('flex') && !el.classList.contains('hidden');
+        if (isOpen && !el.contains(document.activeElement)) {
+            el.focus({ preventScroll: true });
+        }
+    }).observe(el, { attributes: true, attributeFilter: ['class'] });
 });
 refreshBodyScrollLock();
+
+// --- Smooth, gentle mouse-wheel scrolling (desktop) ---------------------------
+// Instead of the page jumping ~100px per wheel notch, the scroll position glides
+// toward its target. Tweak the two numbers below to taste:
+//   WHEEL_SPEED : how far one wheel notch scrolls (lower = slower, e.g. 0.5)
+//   GLIDE       : how soft the glide feels (lower = longer/softer, e.g. 0.06)
+// Set SMOOTH_WHEEL to false to go back to the browser's normal scrolling.
+// Touch screens, trackpads, keyboard, popups and inner scroll lists (like the
+// history list) keep their normal native scrolling.
+// [smooth-wheel:start]
+(function initSmoothWheel() {
+    const SMOOTH_WHEEL = true;
+    const WHEEL_SPEED = 0.7;
+    const GLIDE = 0.09;
+
+    const root = document.documentElement;
+
+    // Mark the page as "scrolling" so CSS can pause hover/color transitions.
+    let idleTimer;
+    window.addEventListener('scroll', () => {
+        if (!root.classList.contains('is-scrolling')) root.classList.add('is-scrolling');
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => root.classList.remove('is-scrolling'), 140);
+    }, { passive: true, capture: true });
+
+    if (!SMOOTH_WHEEL) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+
+    // We drive the scrolling ourselves, so CSS smooth-scroll must not fight it.
+    root.style.scrollBehavior = 'auto';
+
+    let target = window.scrollY;
+    let current = window.scrollY;
+    let rafId = null;
+    let lastTs = 0;
+
+    const maxScroll = () => Math.max(0, root.scrollHeight - window.innerHeight);
+
+    // True if something under the cursor (a popup list, the history list, a
+    // textarea...) can scroll in this direction — let the browser handle those.
+    function innerCanScroll(el, dy) {
+        while (el && el !== document.body && el !== root) {
+            if (el.nodeType === 1) {
+                const oy = getComputedStyle(el).overflowY;
+                if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) {
+                    if (dy < 0 && el.scrollTop > 0) return true;
+                    if (dy > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
+                }
+            }
+            el = el.parentElement;
+        }
+        return false;
+    }
+
+    function stop() {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = null;
+        lastTs = 0;
+    }
+
+    function tick(ts) {
+        const dt = lastTs ? Math.min(64, ts - lastTs) : 16.67;
+        lastTs = ts;
+        // frame-rate independent easing, so it feels the same on 60Hz and 144Hz
+        const k = 1 - Math.pow(1 - GLIDE, dt / 16.67);
+        current += (target - current) * k;
+        if (Math.abs(target - current) < 0.5) {
+            current = target;
+            window.scrollTo({ top: current, left: 0, behavior: 'instant' });
+            stop();
+            return;
+        }
+        window.scrollTo({ top: current, left: 0, behavior: 'instant' });
+        rafId = requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('wheel', (e) => {
+        if (e.defaultPrevented || e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) return;
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+        if (document.body.classList.contains('modal-open-lock')) return;
+
+        let dy = e.deltaY;
+        if (e.deltaMode === 1) dy *= 32;                    // Firefox: lines -> px
+        else if (e.deltaMode === 2) dy *= window.innerHeight;
+        else if (Math.abs(dy) < 50) return;                 // tiny deltas = trackpad; keep native
+        if (!dy) return;
+
+        if (innerCanScroll(e.target, dy)) return;
+
+        const max = maxScroll();
+        if (max <= 0) return;
+
+        e.preventDefault();
+        if (!rafId) { current = window.scrollY; target = current; }
+        target = Math.min(max, Math.max(0, target + dy * WHEEL_SPEED));
+        if (!rafId) rafId = requestAnimationFrame(tick);
+    }, { passive: false });
+
+    // If the user grabs the scrollbar, presses a key, or touches, stop gliding.
+    ['mousedown', 'keydown', 'touchstart'].forEach(ev =>
+        window.addEventListener(ev, stop, { passive: true }));
+})();
+// [smooth-wheel:end]
 
 const firebaseConfig = {
     apiKey: "AIzaSyAf36moKYjsjKNGX23bVoI0k-caXYf0lMI",
@@ -622,6 +736,9 @@ function switchTab(tab) {
             currentEl.classList.add('hidden');
             currentEl.classList.remove('tab-transition-out');
 
+            // Render first, THEN reveal — otherwise the new tab briefly shows
+            // empty (short) and then pops to full height, making the page jump.
+            runTabRenderers(tab);
             nextEl.classList.remove('hidden');
             nextEl.classList.add('tab-transition-in');
             void nextEl.offsetWidth;
@@ -629,12 +746,10 @@ function switchTab(tab) {
             setTimeout(() => {
                 nextEl.classList.remove('tab-transition-in', 'tab-transition-in-active');
             }, 360);
-
-            runTabRenderers(tab);
         }, 160);
     } else {
-        nextEl.classList.remove('hidden');
         runTabRenderers(tab);
+        nextEl.classList.remove('hidden');
     }
 }
 
@@ -664,7 +779,7 @@ function buildPaginationControls(containerId, totalItems, perPage, currentPage, 
     wrap.appendChild(prevBtn);
 
     const pageLabel = document.createElement('span');
-    pageLabel.className = "px-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap";
+    pageLabel.className = "px-3 min-w-[12.5rem] text-center text-[11px] font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap";
     pageLabel.innerHTML = `Page ${currentPage} of ${totalPages} <span class="text-slate-400 font-normal">(${startItem}–${endItem} of ${totalItems})</span>`;
     wrap.appendChild(pageLabel);
 
@@ -1211,8 +1326,10 @@ function openFormationMembersModal(code) {
         ? `<p class="text-[11px] text-slate-400 italic text-center py-6">No members have completed this track yet.</p>`
         : `<div class="formation-members-grid">${completedMembers.map(m => `
                 <div class="formation-member-item">
-                    <span class="fm-name">${m.lastName}, ${m.firstName}</span>
-                    ${m.nickname ? `<span class="fm-nick">"${m.nickname}"</span>` : ''}
+                    <div class="fm-info">
+                        <span class="fm-name">${m.lastName}, ${m.firstName}</span>
+                        ${m.nickname ? `<span class="fm-nick">"${m.nickname}"</span>` : ''}
+                    </div>
                     <span class="fm-chapter">${m.chapter}</span>
                 </div>
             `).join('')}</div>`;
