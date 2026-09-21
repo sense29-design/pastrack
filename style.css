@@ -18,15 +18,19 @@ body { font-family: 'Inter', ui-sans-serif, system-ui; }
 body.modal-open-lock {
     overflow: hidden;
     height: 100%;
-    touch-action: none;
 }
 /* The overlay backdrop itself may still need to scroll on very short
    screens (so a tall modal isn't clipped) — allow that, but stop the
-   scroll from "chaining" through to the page behind it. */
+   scroll from "chaining" through to the page behind it.
+   NOTE: do NOT put touch-action:none on body — touch-action is intersected
+   down the ancestor chain, so it would also block touch scrolling inside
+   the popup until the user taps it. */
 [id$="Modal"].flex {
+    overflow-y: auto;
     overscroll-behavior: contain;
-    touch-action: auto;
+    touch-action: pan-y;
 }
+[id$="Modal"]:focus { outline: none; }
 
 /* ============================================================
    MOBILE AUDIT FIXES
@@ -161,7 +165,7 @@ html.dark ::-webkit-scrollbar-thumb { background: rgba(var(--neon-a),.35); }
     --neon-b: 167 139 250;  /* violet */
 }
 
-* { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; }
 
 button, a, input, select, textarea, .tab-pill, .swatch-btn, .day-cell,
 .glow-btn, .stat-card, [id$="Modal"] > div, .event-pill-list > div {
@@ -522,19 +526,31 @@ html.dark .formation-count-btn:hover { background: rgba(16, 185, 129, .26); }
    jumble of differently-sized chips. */
 .formation-members-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    /* every row is as tall as the tallest one, so all cards match */
+    grid-auto-rows: 1fr;
     gap: 0.5rem;
 }
 .formation-member-item {
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 0.3rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 3.25rem;
     background: white;
     border: 1px solid rgb(var(--p100));
     border-radius: 8px;
-    padding: 0.5rem 0.65rem;
+    padding: 0.5rem 0.75rem;
     line-height: 1.3;
+}
+/* name + nickname stay together on the left; the chapter badge is always
+   pinned to the right and vertically centered, never dropping to its own line */
+.formation-member-item .fm-info {
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.35rem;
 }
 html.dark .formation-member-item {
     background: rgb(30 41 59);
@@ -552,7 +568,8 @@ html.dark .formation-member-item .fm-name { color: rgb(241 245 249); }
     color: rgb(148 163 184);
 }
 .formation-member-item .fm-chapter {
-    margin-left: auto;
+    margin-left: 0;
+    align-self: center;
     font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
@@ -566,4 +583,144 @@ html.dark .formation-member-item .fm-name { color: rgb(241 245 249); }
 html.dark .formation-member-item .fm-chapter {
     color: rgb(110 231 183);
     background: rgba(16, 185, 129, .12);
+}
+
+
+/* ============================================================
+   UNIFORM SIZING & LAYOUT STABILITY
+   Goal: nothing jumps, stretches or shrinks when data is added/removed,
+   when tabs are switched, or when a scrollbar appears.
+   (Selectors here are deliberately a bit more specific than the Tailwind
+   utility classes they override, since Tailwind's CDN stylesheet loads last.)
+============================================================ */
+
+/* Keep the scrollbar's space reserved so the page never shifts sideways
+   when it becomes scrollable (or when a popup locks scrolling). */
+html { scrollbar-gutter: stable; }
+
+/* ---- Data tables: fixed columns + uniform rows (desktop/tablet) ---- */
+@media (min-width: 721px) {
+    table.responsive-table { table-layout: fixed; }
+    table.responsive-table th,
+    table.responsive-table td { vertical-align: middle; overflow-wrap: anywhere; }
+    table.responsive-table tbody tr { height: 3.5rem; }
+
+    /* Members: # | name | gender/age | chapter | formations | actions */
+    table.tbl-members { min-width: 850px; }
+    table.tbl-members th:nth-child(1) { width: 2.5rem; }
+    table.tbl-members th:nth-child(3) { width: 9rem; }
+    table.tbl-members th:nth-child(4) { width: 7.5rem; }
+    table.tbl-members th:nth-child(5) { width: 8rem; }
+    table.tbl-members th:nth-child(6) { width: 13.5rem; }
+
+    /* Formation tracks: code | track | # talks | completed */
+    table.tbl-formations { min-width: 560px; }
+    table.tbl-formations th:nth-child(1) { width: 5rem; }
+    table.tbl-formations th:nth-child(3) { width: 6rem; }
+    table.tbl-formations th:nth-child(4) { width: 11rem; }
+
+    /* Finance: # | date | description | type | amount | action */
+    table.tbl-finance { min-width: 720px; }
+    table.tbl-finance th:nth-child(1) { width: 3rem; }
+    table.tbl-finance th:nth-child(2) { width: 8.5rem; }
+    table.tbl-finance th:nth-child(4) { width: 7.5rem; }
+    table.tbl-finance th:nth-child(5) { width: 9rem; }
+    table.tbl-finance th:nth-child(6) { width: 4.5rem; }
+
+    /* A full page of 10 rows is ~38rem tall. Reserving that height means the
+       pagination bar and everything below it stay put whether the page has
+       1 row or 10. */
+    .table-scroll.table-page { min-height: 38.5rem; }
+
+    /* Every tab panel has the same minimum height so switching tabs
+       doesn't make the whole page jump up and down. */
+    [id^="tabContent"] { min-height: 40rem; }
+}
+
+/* ---- Calendar: every week-row is exactly the same height ---- */
+#calendarGrid { grid-auto-rows: 7.5rem; }
+#calendarGrid > div { min-height: 0; }
+@media (max-width: 640px) {
+    #calendarGrid { grid-auto-rows: 4rem; }
+}
+
+/* ---- Tabs: equal-width tabs (they were sized by their label text) ---- */
+@media (max-width: 1023px) {
+    #sidebarNav .sidebar-tablist {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(10.5rem, 1fr);
+    }
+    #sidebarNav .sidebar-tab { flex: none; width: auto; }
+}
+
+/* ---- Header buttons: tidy, equal 2-column grid on phones ---- */
+@media (max-width: 639px) {
+    .app-container > .header-texture > div:last-child {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    .app-container > .header-texture > div:last-child > * { min-width: 0; }
+    .app-container > .header-texture .header-btn { width: 100%; }
+}
+
+/* ---- History & Backups: both lists are the same size, empty or full ---- */
+#historyLogContainer, #backupListContainer { min-height: 12rem; }
+@media (min-width: 1024px) {
+    #historyLogContainer, #backupListContainer { height: 26rem; max-height: 26rem; }
+}
+
+
+/* ============================================================
+   SMOOTH & CALM MOTION
+   Less "busy" movement on screen while scrolling, and softer, slower
+   fades — easier on the eyes.
+============================================================ */
+
+/* Cards used to lift/slide when the mouse passed over them — during a scroll
+   that made everything jiggle. Keep the soft shadow highlight, drop the movement. */
+.stat-card:hover,
+.day-cell:hover,
+.backup-card:hover,
+.event-pill-list > div:hover { transform: none; }
+
+/* The "today" badge pulsed forever (constant flicker). Keep the glow, stop the pulse. */
+.day-cell.is-today .day-number-badge { animation: none; }
+
+/* Tab panels: gentle fade only (no sliding), a bit slower. */
+@keyframes softFade { from { opacity: 0; } to { opacity: 1; } }
+[id^="tabContent"]:not(.hidden) { animation: softFade .45s ease; }
+
+/* Popups: softer, slower entrance (was a quick scale + slide). */
+@keyframes modalPopSoft {
+    from { opacity: 0; transform: translateY(8px) scale(.985); }
+    to   { opacity: 1; transform: none; }
+}
+[id$="Modal"].flex { animation: modalFade .3s ease; }
+[id$="Modal"].flex > div { animation: modalPopSoft .4s cubic-bezier(.22,.61,.36,1); }
+
+/* While the page is actively scrolling (class toggled by script.js), skip
+   hover/color transitions so nothing animates under your eyes mid-scroll. */
+html.is-scrolling *,
+html.is-scrolling *::before,
+html.is-scrolling *::after { transition: none !important; }
+
+/* Background blur behind popups is heavy to repaint while scrolling a popup on
+   phones/tablets — turn it off there (the dark overlay stays). */
+@media (max-width: 1023px) {
+    [id$="Modal"] {
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+}
+
+/* Respect the device's "reduce motion" setting. */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
 }
