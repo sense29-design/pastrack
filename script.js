@@ -39,7 +39,12 @@ checkSession();
 // and future modal, without having to edit each individual open/close
 // function.
 function isAnyModalOpen() {
-    return Array.from(document.querySelectorAll('[id$="Modal"]')).some(el => el.classList.contains('flex'));
+    // NOTE: pinModal has "flex" hard-coded in index.html and is only ever
+    // hidden via the "hidden" class, so "flex" alone is NOT enough to say a
+    // modal is open — it must also not be hidden.
+    return Array.from(document.querySelectorAll('[id$="Modal"]')).some(el =>
+        el.classList.contains('flex') && !el.classList.contains('hidden')
+    );
 }
 function refreshBodyScrollLock() {
     document.body.classList.toggle('modal-open-lock', isAnyModalOpen());
