@@ -65,6 +65,12 @@ function refreshBodyScrollLock() {
 // Safety net: if the page ever comes back from the background still locked, re-check.
 document.addEventListener('visibilitychange', refreshBodyScrollLock);
 window.addEventListener('pageshow', refreshBodyScrollLock);
+
+// On phones/tablets, auto-focusing a text field makes the browser zoom in
+// and open the keyboard. Only auto-focus on devices with a real mouse.
+function isTouchDevice() {
+    return window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+}
 document.querySelectorAll('[id$="Modal"]').forEach(el => {
     el.setAttribute('tabindex', '-1');
     new MutationObserver(() => {
@@ -1043,7 +1049,7 @@ function openAddEventModal(prefillDate) {
     document.getElementById('eventDate').value = prefillDate || new Date().toISOString().slice(0, 10);
     document.getElementById('eventCategory').value = 'general';
     document.getElementById('eventTitle').value = '';
-    document.getElementById('eventTitle').focus();
+    if (!isTouchDevice()) document.getElementById('eventTitle').focus();
 }
 
 function openAddEventModalForDay() {
@@ -1063,7 +1069,7 @@ function openEditEventModal(firebaseId) {
     document.getElementById('eventCategory').value = ev.category || 'general';
     document.getElementById('addEventModal').classList.remove('hidden');
     document.getElementById('addEventModal').classList.add('flex');
-    document.getElementById('eventTitle').focus();
+    if (!isTouchDevice()) document.getElementById('eventTitle').focus();
 }
 
 function closeAddEventModal() {
@@ -1274,7 +1280,17 @@ function clearSearch() {
     renderTable();
 }
 
-function handleChapterFilterChange() {
+// Chapter filter buttons (All / Chapter 1 / Chapter 2). The chosen value is kept
+// in the hidden #chapterFilter input, which renderTable() already reads.
+function setChapterFilter(value) {
+    document.getElementById('chapterFilter').value = value;
+    const group = document.getElementById('chapterFilterGroup');
+    group.querySelectorAll('.chapter-filter-btn').forEach((btn, i) => {
+        const active = btn.dataset.chapter === value;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
+        if (active) group.dataset.active = String(i); // moves the sliding pill
+    });
     memberPage = 1;
     renderTable();
 }
