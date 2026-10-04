@@ -64,110 +64,6 @@ document.querySelectorAll('[id$="Modal"]').forEach(el => {
 });
 refreshBodyScrollLock();
 
-// --- Smooth, gentle mouse-wheel scrolling (desktop) ---------------------------
-// Instead of the page jumping ~100px per wheel notch, the scroll position glides
-// toward its target. Tweak the two numbers below to taste:
-//   WHEEL_SPEED : how far one wheel notch scrolls (lower = slower, e.g. 0.5)
-//   GLIDE       : how soft the glide feels (lower = longer/softer, e.g. 0.06)
-// Set SMOOTH_WHEEL to false to go back to the browser's normal scrolling.
-// Touch screens, trackpads, keyboard, popups and inner scroll lists (like the
-// history list) keep their normal native scrolling.
-// [smooth-wheel:start]
-(function initSmoothWheel() {
-    const SMOOTH_WHEEL = true;
-    const WHEEL_SPEED = 0.7;
-    const GLIDE = 0.09;
-
-    const root = document.documentElement;
-
-    // Mark the page as "scrolling" so CSS can pause hover/color transitions.
-    let idleTimer;
-    window.addEventListener('scroll', () => {
-        if (!root.classList.contains('is-scrolling')) root.classList.add('is-scrolling');
-        clearTimeout(idleTimer);
-        idleTimer = setTimeout(() => root.classList.remove('is-scrolling'), 140);
-    }, { passive: true, capture: true });
-
-    if (!SMOOTH_WHEEL) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
-
-    // We drive the scrolling ourselves, so CSS smooth-scroll must not fight it.
-    root.style.scrollBehavior = 'auto';
-
-    let target = window.scrollY;
-    let current = window.scrollY;
-    let rafId = null;
-    let lastTs = 0;
-
-    const maxScroll = () => Math.max(0, root.scrollHeight - window.innerHeight);
-
-    // True if something under the cursor (a popup list, the history list, a
-    // textarea...) can scroll in this direction — let the browser handle those.
-    function innerCanScroll(el, dy) {
-        while (el && el !== document.body && el !== root) {
-            if (el.nodeType === 1) {
-                const oy = getComputedStyle(el).overflowY;
-                if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) {
-                    if (dy < 0 && el.scrollTop > 0) return true;
-                    if (dy > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
-                }
-            }
-            el = el.parentElement;
-        }
-        return false;
-    }
-
-    function stop() {
-        if (rafId) cancelAnimationFrame(rafId);
-        rafId = null;
-        lastTs = 0;
-    }
-
-    function tick(ts) {
-        const dt = lastTs ? Math.min(64, ts - lastTs) : 16.67;
-        lastTs = ts;
-        // frame-rate independent easing, so it feels the same on 60Hz and 144Hz
-        const k = 1 - Math.pow(1 - GLIDE, dt / 16.67);
-        current += (target - current) * k;
-        if (Math.abs(target - current) < 0.5) {
-            current = target;
-            window.scrollTo({ top: current, left: 0, behavior: 'instant' });
-            stop();
-            return;
-        }
-        window.scrollTo({ top: current, left: 0, behavior: 'instant' });
-        rafId = requestAnimationFrame(tick);
-    }
-
-    window.addEventListener('wheel', (e) => {
-        if (e.defaultPrevented || e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) return;
-        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-        if (document.body.classList.contains('modal-open-lock')) return;
-
-        let dy = e.deltaY;
-        if (e.deltaMode === 1) dy *= 32;                    // Firefox: lines -> px
-        else if (e.deltaMode === 2) dy *= window.innerHeight;
-        else if (Math.abs(dy) < 50) return;                 // tiny deltas = trackpad; keep native
-        if (!dy) return;
-
-        if (innerCanScroll(e.target, dy)) return;
-
-        const max = maxScroll();
-        if (max <= 0) return;
-
-        e.preventDefault();
-        if (!rafId) { current = window.scrollY; target = current; }
-        target = Math.min(max, Math.max(0, target + dy * WHEEL_SPEED));
-        if (!rafId) rafId = requestAnimationFrame(tick);
-    }, { passive: false });
-
-    // If the user grabs the scrollbar, presses a key, or touches, stop gliding.
-    ['mousedown', 'keydown', 'touchstart'].forEach(ev =>
-        window.addEventListener(ev, stop, { passive: true }));
-})();
-// [smooth-wheel:end]
-
 const firebaseConfig = {
     apiKey: "AIzaSyAf36moKYjsjKNGX23bVoI0k-caXYf0lMI",
     authDomain: "yfc-pastoral-tracker.firebaseapp.com",
@@ -545,7 +441,9 @@ function renderHistoryLogs() {
 function buildFullSnapshot() {
     return {
         members: JSON.parse(JSON.stringify(members)),
-        finance: JSON.parse(JSON.stringify(financeTransactions)),
+        // Pictures are left out of in-browser snapshots: they can be large and
+        // localStorage only holds ~5 MB. (Export to JSON still includes them.)
+        finance: JSON.parse(JSON.stringify(financeTransactions)).map(t => { delete t.image; return t; }),
         calendar: JSON.parse(JSON.stringify(calendarEvents))
     };
 }
@@ -796,35 +694,133 @@ function buildPaginationControls(containerId, totalItems, perPage, currentPage, 
 }
 
 // --- Finance Tracker Functions (Cloud Synced) ---
+let transPendingImage = null; // base64 data URL of the picture in the open modal
+
+// Resize + compress so the picture stays small enough for Firestore (1 MB doc limit)
+function compressImage(file, maxSize = 900, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onerror = reject;
+            img.onload = () => {
+                const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+                const w = Math.round(img.width * scale);
+                const h = Math.round(img.height * scale);
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function setTransactionImagePreview(dataUrl) {
+    transPendingImage = dataUrl || null;
+    const preview = document.getElementById('transImagePreview');
+    document.getElementById('transImagePreviewWrap').classList.toggle('hidden', !dataUrl);
+    document.getElementById('transImagePicker').classList.toggle('hidden', !!dataUrl);
+    preview.src = dataUrl || '';
+}
+
+async function handleTransactionImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+        setTransactionImagePreview(await compressImage(file));
+    } catch (err) {
+        console.error('Image error: ', err);
+        alert('Could not read that image. Please try another photo.');
+    }
+    event.target.value = '';
+}
+
+function removeTransactionImage() {
+    setTransactionImagePreview(null);
+}
+
 function openAddTransactionModal() {
+    document.getElementById('transEditId').value = '';
+    document.getElementById('addTransactionModalTitle').innerText = 'Add Financial Entry';
+    document.getElementById('transSubmitBtn').innerText = 'Save';
+    document.getElementById('transDesc').value = '';
+    document.getElementById('transType').value = 'In';
+    document.getElementById('transAmount').value = '';
+    document.getElementById('transDate').value = new Date().toISOString().slice(0, 10);
+    setTransactionImagePreview(null);
     document.getElementById('addTransactionModal').classList.remove('hidden');
     document.getElementById('addTransactionModal').classList.add('flex');
-    document.getElementById('transDate').value = new Date().toISOString().slice(0, 10);
+}
+
+function openEditTransactionModal(firebaseId) {
+    const t = financeTransactions.find(x => x.firebaseId === firebaseId);
+    if (!t) return;
+    document.getElementById('transEditId').value = firebaseId;
+    document.getElementById('addTransactionModalTitle').innerText = 'Edit Financial Entry';
+    document.getElementById('transSubmitBtn').innerText = 'Save Changes';
+    document.getElementById('transDesc').value = t.desc || '';
+    document.getElementById('transType').value = t.type || 'In';
+    document.getElementById('transAmount').value = t.amount;
+    document.getElementById('transDate').value = t.date || '';
+    setTransactionImagePreview(t.image || null);
+    document.getElementById('addTransactionModal').classList.remove('hidden');
+    document.getElementById('addTransactionModal').classList.add('flex');
 }
 
 function closeAddTransactionModal() {
     document.getElementById('addTransactionModal').classList.add('hidden');
     document.getElementById('addTransactionModal').classList.remove('flex');
+    document.getElementById('transEditId').value = '';
+    setTransactionImagePreview(null);
 }
 
 async function saveTransaction(e) {
     e.preventDefault();
+    const editId = document.getElementById('transEditId').value;
     const desc = document.getElementById('transDesc').value;
     const type = document.getElementById('transType').value;
     const amount = parseFloat(document.getElementById('transAmount').value);
     const date = document.getElementById('transDate').value;
 
-    const newTrans = { desc, type, amount, date };
+    const data = { desc, type, amount, date, image: transPendingImage || null };
 
     try {
-        await db.collection("finance").add(newTrans);
-        logActivity(`Added finance transaction: ${desc} (₱${amount})`);
-        financePage = 1;
+        if (editId) {
+            await db.collection("finance").doc(editId).update(data);
+            logActivity(`Updated info for finance transaction: ${desc} (₱${amount})`);
+        } else {
+            await db.collection("finance").add(data);
+            logActivity(`Added finance transaction: ${desc} (₱${amount})`);
+            financePage = 1;
+        }
         closeAddTransactionModal();
     } catch (err) {
         console.error("Error saving transaction: ", err);
         alert("Error saving transaction to cloud.");
     }
+}
+
+function viewTransactionImage(firebaseId) {
+    const t = financeTransactions.find(x => x.firebaseId === firebaseId);
+    if (!t || !t.image) return;
+    document.getElementById('imageViewerTitle').innerText = `${t.desc} — ₱${t.amount.toFixed(2)}`;
+    document.getElementById('imageViewerImg').src = t.image;
+    document.getElementById('imageViewerModal').classList.remove('hidden');
+    document.getElementById('imageViewerModal').classList.add('flex');
+}
+
+function closeImageViewer() {
+    document.getElementById('imageViewerModal').classList.add('hidden');
+    document.getElementById('imageViewerModal').classList.remove('flex');
+    document.getElementById('imageViewerImg').src = '';
 }
 
 function deleteTransaction(firebaseId) {
@@ -876,7 +872,13 @@ function renderFinanceTracker() {
             <td data-label="Description" class="py-3.5 px-4 font-semibold">${t.desc}</td>
             <td data-label="Type" class="py-3.5 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.type === 'In' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${t.type === 'In' ? 'Funds In' : 'Expense'}</span></td>
             <td data-label="Amount" class="py-3.5 px-4 text-right font-mono font-bold ${t.type === 'In' ? 'text-emerald-600' : 'text-red-500'}">₱${t.amount.toFixed(2)}</td>
-            <td data-label="Action" class="py-3.5 px-4 text-center whitespace-nowrap"><button onclick="deleteTransaction('${t.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold w-6 h-6 inline-flex items-center justify-center transition">✕</button></td>
+            <td data-label="Action" class="py-3.5 px-4 text-center whitespace-nowrap">
+                <div class="flex items-center justify-center gap-1">
+                    ${t.image ? `<button onclick="viewTransactionImage('${t.firebaseId}')" class="w-6 h-6 inline-flex items-center justify-center transition hover:scale-110" title="View picture">🖼️</button>` : ''}
+                    <button onclick="openEditTransactionModal('${t.firebaseId}')" class="text-pastoral-700 dark:text-emerald-400 hover:text-pastoral-900 dark:hover:text-emerald-300 font-bold w-6 h-6 inline-flex items-center justify-center transition" title="Edit">✎</button>
+                    <button onclick="deleteTransaction('${t.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold w-6 h-6 inline-flex items-center justify-center transition" title="Delete">✕</button>
+                </div>
+            </td>
         `;
         tbody.appendChild(tr);
     });
