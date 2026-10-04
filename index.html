@@ -473,39 +473,70 @@
         </div>
     </div>
 
-    <!-- Add Finance Modal -->
-    <div id="addTransactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
-        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-y-auto max-h-[92svh] p-5">
-            <h3 class="font-serif-display text-sm font-semibold mb-3">Add Financial Entry</h3>
-            <form onsubmit="saveTransaction(event)" class="space-y-3 text-xs">
+    <!-- Add / Edit Finance Modal -->
+<div id="addTransactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
+    <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-y-auto max-h-[92svh] p-5">
+        <h3 id="addTransactionModalTitle" class="font-serif-display text-sm font-semibold mb-3">Add Financial Entry</h3>
+        <form onsubmit="saveTransaction(event)" class="space-y-3 text-xs">
+            <input type="hidden" id="transEditId">
+            <div>
+                <label for="transDesc" class="block font-semibold mb-1">Description</label>
+                <input type="text" id="transDesc" required placeholder="Tithes / Camp Fee" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
-                    <label for="transDesc" class="block font-semibold mb-1">Description</label>
-                    <input type="text" id="transDesc" required placeholder="Tithes / Camp Fee" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div>
-                        <label for="transType" class="block font-semibold mb-1">Type</label>
-                        <select id="transType" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2.5 bg-slate-50 dark:bg-slate-900">
-                            <option value="In">Funds In (Income)</option>
-                            <option value="Out">Expense</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="transAmount" class="block font-semibold mb-1">Amount (₱)</label>
-                        <input type="number" step="0.01" inputmode="decimal" id="transAmount" required placeholder="0.00" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
-                    </div>
+                    <label for="transType" class="block font-semibold mb-1">Type</label>
+                    <select id="transType" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2.5 bg-slate-50 dark:bg-slate-900">
+                        <option value="In">Funds In (Income)</option>
+                        <option value="Out">Expense</option>
+                    </select>
                 </div>
                 <div>
-                    <label for="transDate" class="block font-semibold mb-1">Date</label>
-                    <input type="date" id="transDate" required class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+                    <label for="transAmount" class="block font-semibold mb-1">Amount (₱)</label>
+                    <input type="number" step="0.01" inputmode="decimal" id="transAmount" required placeholder="0.00" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
                 </div>
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeAddTransactionModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-medium transition min-h-[44px]">Cancel</button>
-                    <button type="submit" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-medium transition min-h-[44px]">Save</button>
+            </div>
+            <div>
+                <label for="transDate" class="block font-semibold mb-1">Date</label>
+                <input type="date" id="transDate" required class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+            </div>
+
+            <!-- Picture (optional) -->
+            <div>
+                <label class="block font-semibold mb-1">Picture <span class="font-normal text-slate-400">(optional)</span></label>
+                <input type="file" id="transImageInput" accept="image/*" onchange="handleTransactionImage(event)" class="hidden">
+                <label id="transImagePicker" for="transImageInput" class="flex items-center justify-center gap-2 w-full border border-dashed border-slate-300 dark:border-slate-600 rounded-lg px-3 py-4 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 cursor-pointer hover:border-pastoral-600 transition">
+                    📷 <span>Choose a photo (receipt, proof, etc.)</span>
+                </label>
+                <div id="transImagePreviewWrap" class="hidden">
+                    <img id="transImagePreview" alt="Transaction picture preview" class="w-full max-h-48 object-contain rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+                    <div class="flex gap-2 mt-2">
+                        <label for="transImageInput" class="flex-1 text-center bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-medium cursor-pointer transition">Change</label>
+                        <button type="button" onclick="removeTransactionImage()" class="flex-1 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-2 rounded-lg font-medium transition">Remove</button>
+                    </div>
                 </div>
-            </form>
+            </div>
+
+            <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+                <button type="button" onclick="closeAddTransactionModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-medium transition min-h-[44px]">Cancel</button>
+                <button type="submit" id="transSubmitBtn" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-medium transition min-h-[44px]">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Picture Viewer Modal -->
+<div id="imageViewerModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs hidden items-center justify-center z-[60] p-3 sm:p-4">
+    <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-lg w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[92svh]">
+        <div class="bg-pastoral-800 text-white px-4 sm:px-6 py-3.5 flex justify-between items-center font-semibold text-xs shrink-0">
+            <span id="imageViewerTitle" class="tracking-wide truncate">Picture</span>
+            <button onclick="closeImageViewer()" aria-label="Close" class="text-pastoral-200 hover:text-white font-bold text-base transition px-2"><i class="fi fi-rr-cross-small"></i></button>
+        </div>
+        <div class="p-3 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900">
+            <img id="imageViewerImg" alt="Transaction picture" class="w-full h-auto rounded-lg">
         </div>
     </div>
+</div>
 
     <!-- Add Event Modal -->
     <div id="addEventModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
