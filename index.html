@@ -2,8 +2,9 @@
 <html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
-    <!-- RESPONSIVE: viewport-fit=cover handles iPhone notch/safe areas -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <!-- RESPONSIVE: viewport-fit=cover handles iPhone notch/safe areas.
+         maximum-scale=1.0 stops phones from auto-zooming when a field/button is tapped. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#1A4530">
     <title>YFC Pastoral Formation Tracker</title>
 
@@ -80,7 +81,7 @@
         <div class="header-texture bg-gradient-to-br from-pastoral-800 to-pastoral-950 text-white px-4 sm:px-6 py-4 sm:py-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4">
             <div class="min-w-0">
                 <h1 class="font-serif-display text-base sm:text-lg xl:text-xl font-semibold tracking-tight leading-tight">YFC Pastoral Formation Tracker</h1>
-                <p class="text-[11px] text-pastoral-200 mt-1">Central Sector Cluster B</p>
+                <p class="text-[11px] text-pastoral-200 mt-1">Area Cluster B — following each member's formation journey &amp; finances</p>
             </div>
 
             <!-- RESPONSIVE: wraps into a tidy grid on phones instead of squeezing into one row -->
@@ -183,18 +184,24 @@
                                 <input type="text" id="searchInput" oninput="handleSearchInput()" placeholder="Search member by name or nickname..." aria-label="Search members" class="w-full pl-10 pr-10 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 text-xs transition shadow-xs">
                                 <button id="clearSearchBtn" onclick="clearSearch()" aria-label="Clear search" class="absolute inset-y-0 right-0 pr-3 hidden items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-sm"><i class="fi fi-rr-cross-small"></i></button>
                             </div>
-                            <select id="chapterFilter" onchange="handleChapterFilterChange()" aria-label="Filter by area or chapter" class="w-full sm:w-auto border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-pastoral-600 text-xs transition shadow-xs">
-                                <option value="">All areas / chapters</option>
-                                <option value="Chapter 1">Chapter 1</option>
-                                <option value="Chapter 2">Chapter 2</option>
-                            </select>
+
+                            <!-- Chapter filter buttons -->
+                            <input type="hidden" id="chapterFilter" value="">
+                            <div id="chapterFilterGroup" role="group" aria-label="Filter by area or chapter" data-active="0" class="chapter-filter">
+                                <button type="button" data-chapter="" aria-pressed="true" onclick="setChapterFilter('')" class="chapter-filter-btn active">
+                                    <span class="cf-label">All</span></button>
+                                <button type="button" data-chapter="Chapter 1" aria-pressed="false" onclick="setChapterFilter('Chapter 1')" class="chapter-filter-btn">
+                                    <span class="cf-label">Chapter 1</span></button>
+                                <button type="button" data-chapter="Chapter 2" aria-pressed="false" onclick="setChapterFilter('Chapter 2')" class="chapter-filter-btn">
+                                    <span class="cf-label">Chapter 2</span></button>
+                            </div>
                         </div>
 
                         <div class="table-scroll table-page overflow-x-auto w-full pt-2 sm:pt-0">
                             <table class="responsive-table tbl-members w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-pastoral-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 text-[10px] font-semibold border-b border-pastoral-100 dark:border-slate-700">
-                                        <th scope="col" class="py-3.5 px-4 w-10 text-center">#</th>
+                                        <th scope="col" class="py-3.5 px-4 w-14 text-center">#</th>
                                         <th scope="col" class="py-3.5 px-4">Member name</th>
                                         <th scope="col" class="py-3.5 px-4 w-28">Gender / age</th>
                                         <th scope="col" class="py-3.5 px-4 w-36">Area / chapter</th>
@@ -262,7 +269,7 @@
                             <table class="responsive-table tbl-finance w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-pastoral-800 text-white text-[10px] font-semibold">
-                                        <th scope="col" class="py-3 px-4 w-10 text-center">#</th>
+                                        <th scope="col" class="py-3 px-4 w-14 text-center">#</th>
                                         <th scope="col" class="py-3 px-4">Date</th>
                                         <th scope="col" class="py-3 px-4">Description</th>
                                         <th scope="col" class="py-3 px-4">Type</th>
@@ -474,66 +481,66 @@
     </div>
 
     <!-- Add / Edit Finance Modal -->
-<div id="addTransactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
-    <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-y-auto max-h-[92svh] p-5">
-        <h3 id="addTransactionModalTitle" class="font-serif-display text-sm font-semibold mb-3">Add Financial Entry</h3>
-        <form onsubmit="saveTransaction(event)" class="space-y-3 text-xs">
-            <input type="hidden" id="transEditId">
-            <div>
-                <label for="transDesc" class="block font-semibold mb-1">Description</label>
-                <input type="text" id="transDesc" required placeholder="Tithes / Camp Fee" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+    <div id="addTransactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
+        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full border border-pastoral-100 dark:border-slate-700 overflow-y-auto max-h-[92svh] p-5">
+            <h3 id="addTransactionModalTitle" class="font-serif-display text-sm font-semibold mb-3">Add Financial Entry</h3>
+            <form onsubmit="saveTransaction(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="transEditId">
                 <div>
-                    <label for="transType" class="block font-semibold mb-1">Type</label>
-                    <select id="transType" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2.5 bg-slate-50 dark:bg-slate-900">
-                        <option value="In">Funds In (Income)</option>
-                        <option value="Out">Expense</option>
-                    </select>
+                    <label for="transDesc" class="block font-semibold mb-1">Description</label>
+                    <input type="text" id="transDesc" required placeholder="Tithes / Camp Fee" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <label for="transType" class="block font-semibold mb-1">Type</label>
+                        <select id="transType" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2.5 bg-slate-50 dark:bg-slate-900">
+                            <option value="In">Funds In (Income)</option>
+                            <option value="Out">Expense</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="transAmount" class="block font-semibold mb-1">Amount (₱)</label>
+                        <input type="number" step="0.01" inputmode="decimal" id="transAmount" required placeholder="0.00" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+                    </div>
                 </div>
                 <div>
-                    <label for="transAmount" class="block font-semibold mb-1">Amount (₱)</label>
-                    <input type="number" step="0.01" inputmode="decimal" id="transAmount" required placeholder="0.00" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
+                    <label for="transDate" class="block font-semibold mb-1">Date</label>
+                    <input type="date" id="transDate" required class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
                 </div>
-            </div>
-            <div>
-                <label for="transDate" class="block font-semibold mb-1">Date</label>
-                <input type="date" id="transDate" required class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
-            </div>
 
-           <!-- Photos (optional, up to 5) -->
-<div>
-    <div class="flex items-center justify-between mb-1">
-        <label class="block font-semibold">Photos <span class="font-normal text-slate-400">(optional)</span></label>
-        <span id="transImageCount" class="text-[10px] text-slate-400">0 / 5</span>
-    </div>
-    <input type="file" id="transImageInput" accept="image/*" multiple onchange="handleTransactionImages(event)" class="hidden">
-    <div id="transImageGrid" class="hidden grid grid-cols-3 gap-2 mb-2"></div>
-    <label id="transImageAddBtn" for="transImageInput" class="flex items-center justify-center gap-2 w-full min-h-[44px] border border-dashed border-slate-300 dark:border-slate-600 rounded-lg px-3 py-3 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 cursor-pointer hover:border-pastoral-600 transition">
-       <i class="fi fi-rr-camera" aria-hidden="true"></i> <span>Add photo</span>
-    </label>
-</div>
+                <!-- Photos (optional, up to 5) -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-semibold">Photos <span class="font-normal text-slate-400">(optional)</span></label>
+                        <span id="transImageCount" class="text-[10px] text-slate-400">0 / 5</span>
+                    </div>
+                    <input type="file" id="transImageInput" accept="image/*" multiple onchange="handleTransactionImages(event)" class="hidden">
+                    <div id="transImageGrid" class="hidden grid grid-cols-3 gap-2 mb-2"></div>
+                    <label id="transImageAddBtn" for="transImageInput" class="flex items-center justify-center gap-2 w-full min-h-[44px] border border-dashed border-slate-300 dark:border-slate-600 rounded-lg px-3 py-3 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 cursor-pointer hover:border-pastoral-600 transition">
+                        <i class="fi fi-rr-camera" aria-hidden="true"></i> <span>Add photo</span>
+                    </label>
+                </div>
 
-            <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
-                <button type="button" onclick="closeAddTransactionModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-medium transition min-h-[44px]">Cancel</button>
-                <button type="submit" id="transSubmitBtn" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-medium transition min-h-[44px]">Save</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Picture Viewer Modal -->
-<div id="imageViewerModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs hidden items-center justify-center z-[60] p-3 sm:p-4">
-    <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-lg w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[92svh]">
-        <div class="bg-pastoral-800 text-white px-4 sm:px-6 py-3.5 flex justify-between items-center font-semibold text-xs shrink-0">
-            <span id="imageViewerTitle" class="tracking-wide truncate">Picture</span>
-            <button onclick="closeImageViewer()" aria-label="Close" class="text-pastoral-200 hover:text-white font-bold text-base transition px-2"><i class="fi fi-rr-cross-small"></i></button>
-        </div>
-        <div class="p-3 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900">
-            <div id="imageViewerList"></div>
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAddTransactionModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-medium transition min-h-[44px]">Cancel</button>
+                    <button type="submit" id="transSubmitBtn" class="w-full sm:w-auto glow-btn bg-pastoral-800 hover:bg-pastoral-900 text-white px-4 py-2 rounded-lg font-medium transition min-h-[44px]">Save</button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
+
+    <!-- Photo Viewer Modal -->
+    <div id="imageViewerModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs hidden items-center justify-center z-[60] p-3 sm:p-4">
+        <div class="modal-panel bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl max-w-lg w-full border border-pastoral-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[92svh]">
+            <div class="bg-pastoral-800 text-white px-4 sm:px-6 py-3.5 flex justify-between items-center font-semibold text-xs shrink-0">
+                <span id="imageViewerTitle" class="tracking-wide truncate">Photos</span>
+                <button onclick="closeImageViewer()" aria-label="Close" class="text-pastoral-200 hover:text-white font-bold text-base transition px-2"><i class="fi fi-rr-cross-small"></i></button>
+            </div>
+            <div class="p-3 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900">
+                <div id="imageViewerList"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- Add Event Modal -->
     <div id="addEventModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-3 sm:p-4">
