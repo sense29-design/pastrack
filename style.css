@@ -165,7 +165,7 @@ html.dark ::-webkit-scrollbar-thumb { background: rgba(var(--neon-a),.35); }
     --neon-b: 167 139 250;  /* violet */
 }
 
-html { scroll-behavior: smooth; }
+* { scroll-behavior: smooth; }
 
 button, a, input, select, textarea, .tab-pill, .swatch-btn, .day-cell,
 .glow-btn, .stat-card, [id$="Modal"] > div, .event-pill-list > div {
@@ -606,12 +606,12 @@ html { scrollbar-gutter: stable; }
     /* Keep the "#" column on one line and give it room for 2-3 digit numbers */
     table.responsive-table th:first-child,
     table.responsive-table td:first-child {
-    white-space: nowrap;
-    overflow-wrap: normal;
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
-    text-align: center;
-}
+        white-space: nowrap;
+        overflow-wrap: normal;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        text-align: center;
+    }
 
     /* Members: # | name | gender/age | chapter | formations | actions */
     table.tbl-members { min-width: 850px; }
@@ -633,7 +633,7 @@ html { scrollbar-gutter: stable; }
     table.tbl-finance th:nth-child(2) { width: 8.5rem; }
     table.tbl-finance th:nth-child(4) { width: 7.5rem; }
     table.tbl-finance th:nth-child(5) { width: 9rem; }
-    table.tbl-finance th:nth-child(6) { width: 4.5rem; }
+    table.tbl-finance th:nth-child(6) { width: 9rem; }
 
     /* A full page of 10 rows is ~38rem tall. Reserving that height means the
        pagination bar and everything below it stay put whether the page has
@@ -677,58 +677,4 @@ html { scrollbar-gutter: stable; }
 #historyLogContainer, #backupListContainer { min-height: 12rem; }
 @media (min-width: 1024px) {
     #historyLogContainer, #backupListContainer { height: 26rem; max-height: 26rem; }
-}
-
-
-/* ============================================================
-   SMOOTH & CALM MOTION
-   Less "busy" movement on screen while scrolling, and softer, slower
-   fades — easier on the eyes.
-============================================================ */
-
-/* Cards used to lift/slide when the mouse passed over them — during a scroll
-   that made everything jiggle. Keep the soft shadow highlight, drop the movement. */
-.stat-card:hover,
-.day-cell:hover,
-.backup-card:hover,
-.event-pill-list > div:hover { transform: none; }
-
-/* The "today" badge pulsed forever (constant flicker). Keep the glow, stop the pulse. */
-.day-cell.is-today .day-number-badge { animation: none; }
-
-/* Tab panels: gentle fade only (no sliding), a bit slower. */
-@keyframes softFade { from { opacity: 0; } to { opacity: 1; } }
-[id^="tabContent"]:not(.hidden) { animation: softFade .45s ease; }
-
-/* Popups: softer, slower entrance (was a quick scale + slide). */
-@keyframes modalPopSoft {
-    from { opacity: 0; transform: translateY(8px) scale(.985); }
-    to   { opacity: 1; transform: none; }
-}
-[id$="Modal"].flex { animation: modalFade .3s ease; }
-[id$="Modal"].flex > div { animation: modalPopSoft .4s cubic-bezier(.22,.61,.36,1); }
-
-/* While the page is actively scrolling (class toggled by script.js), skip
-   hover/color transitions so nothing animates under your eyes mid-scroll. */
-html.is-scrolling *,
-html.is-scrolling *::before,
-html.is-scrolling *::after { transition: none !important; }
-
-/* Background blur behind popups is heavy to repaint while scrolling a popup on
-   phones/tablets — turn it off there (the dark overlay stays). */
-@media (max-width: 1023px) {
-    [id$="Modal"] {
-        -webkit-backdrop-filter: none !important;
-        backdrop-filter: none !important;
-    }
-}
-
-/* Respect the device's "reduce motion" setting. */
-@media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
-    }
 }
