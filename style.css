@@ -14,7 +14,9 @@ body { font-family: 'Inter', ui-sans-serif, system-ui; }
 
 /* Background scroll lock — toggled by script.js whenever any [id$="Modal"]
    overlay is visible, so the page underneath a popup can no longer be
-   scrolled (desktop wheel/keyboard AND mobile touch). */
+   scrolled (desktop wheel/keyboard AND mobile touch). script.js saves the
+   scroll position before locking and restores it when the popup closes,
+   so the page never ends up "stuck". */
 body.modal-open-lock {
     position: fixed;
     left: 0;
@@ -603,10 +605,12 @@ html { scrollbar-gutter: stable; }
 
 /* ---- Data tables: fixed columns + uniform rows (desktop/tablet) ---- */
 @media (min-width: 721px) {
+    table.responsive-table { table-layout: fixed; }
     table.responsive-table th,
     table.responsive-table td { vertical-align: middle; overflow-wrap: anywhere; }
+    table.responsive-table tbody tr { height: 3.5rem; }
 
-    /* Keep the "#" column on one line and give it room for 2-3 digit numbers */
+    /* "#" column: always one line, with room for 2–3 digit numbers */
     table.responsive-table th:first-child,
     table.responsive-table td:first-child {
         white-space: nowrap;
@@ -618,7 +622,7 @@ html { scrollbar-gutter: stable; }
 
     /* Members: # | name | gender/age | chapter | formations | actions */
     table.tbl-members { min-width: 850px; }
-    table.tbl-members th:nth-child(1) { width: 2.5rem; }
+    table.tbl-members th:nth-child(1) { width: 3.5rem; }
     table.tbl-members th:nth-child(3) { width: 9rem; }
     table.tbl-members th:nth-child(4) { width: 7.5rem; }
     table.tbl-members th:nth-child(5) { width: 8rem; }
@@ -632,7 +636,7 @@ html { scrollbar-gutter: stable; }
 
     /* Finance: # | date | description | type | amount | action */
     table.tbl-finance { min-width: 720px; }
-    table.tbl-finance th:nth-child(1) { width: 3rem; }
+    table.tbl-finance th:nth-child(1) { width: 3.5rem; }
     table.tbl-finance th:nth-child(2) { width: 8.5rem; }
     table.tbl-finance th:nth-child(4) { width: 7.5rem; }
     table.tbl-finance th:nth-child(5) { width: 9rem; }
@@ -681,8 +685,90 @@ html { scrollbar-gutter: stable; }
 @media (min-width: 1024px) {
     #historyLogContainer, #backupListContainer { height: 26rem; max-height: 26rem; }
 }
-/* Phones: stop iOS/Android from zooming in when a field is tapped */
-@media (max-width: 767px) {
-    input, select, textarea { font-size: 16px !important; }
+
+/* ============================================================
+   SEARCH BAR + CHAPTER FILTER — same height, side by side
+============================================================ */
+#searchInput {
+    height: 44px;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
+
+.chapter-filter {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    width: 100%;
+    height: 44px;
+    padding: 3px;
+    border-radius: 0.5rem;
+    background: rgb(var(--p50));
+    border: 1px solid rgb(203 213 225);
+}
+@media (min-width: 640px) {
+    .chapter-filter { width: 21rem; flex: none; }
+}
+
+.chapter-filter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 0;
+    padding: 0 0.5rem;
+    border-radius: 0.4rem;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: rgb(100 116 139);
+    background: transparent;
+    cursor: pointer;
+}
+.chapter-filter-btn:hover {
+    color: rgb(var(--p800));
+    background: rgb(var(--p100));
+}
+
+/* active segment: solid theme color, no glow */
+.chapter-filter-btn.active,
+.chapter-filter-btn.active:hover {
+    color: #fff;
+    background: rgb(var(--p700));
+}
+
+/* dark mode */
+html.dark .chapter-filter {
+    background: rgb(15 23 42);
+    border-color: rgb(71 85 105);
+}
+html.dark .chapter-filter-btn { color: rgb(148 163 184); }
+html.dark .chapter-filter-btn:hover {
+    color: rgb(226 232 240);
+    background: rgb(30 41 59);
+}
+html.dark .chapter-filter-btn.active,
+html.dark .chapter-filter-btn.active:hover {
+    color: #fff;
+    background: rgb(var(--p700));
+}
+
+/* ============================================================
+   PHONE ONLY: no zoom on popups / fields
+============================================================ */
 button, label, a { touch-action: manipulation; }
+
+@media (max-width: 767px), (pointer: coarse) {
+    /* stop the browser from enlarging text or fields */
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    input, select, textarea { font-size: 16px !important; }
+
+    /* remove the "zoom in" pop animation of popups — fade only */
+    [id$="Modal"].flex > div { animation: none !important; transform: none !important; }
+
+    /* no zoom/lift effect when tapping buttons and cards */
+    .glow-btn:hover, .stat-card:hover, .nav-action-btn:hover,
+    .day-cell:hover, .backup-card:hover, .formation-count-btn:hover {
+        transform: none !important;
+    }
+}
