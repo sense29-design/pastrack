@@ -46,9 +46,25 @@ function isAnyModalOpen() {
         el.classList.contains('flex') && !el.classList.contains('hidden')
     );
 }
+let _lockedScrollY = 0;
+let _scrollLocked = false;
 function refreshBodyScrollLock() {
-    document.body.classList.toggle('modal-open-lock', isAnyModalOpen());
+    const shouldLock = isAnyModalOpen();
+    if (shouldLock && !_scrollLocked) {
+        _lockedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        document.body.classList.add('modal-open-lock');
+        document.body.style.top = `-${_lockedScrollY}px`;
+        _scrollLocked = true;
+    } else if (!shouldLock && _scrollLocked) {
+        document.body.classList.remove('modal-open-lock');
+        document.body.style.top = '';
+        window.scrollTo(0, _lockedScrollY);
+        _scrollLocked = false;
+    }
 }
+// Safety net: if the page ever comes back from the background still locked, re-check.
+document.addEventListener('visibilitychange', refreshBodyScrollLock);
+window.addEventListener('pageshow', refreshBodyScrollLock);
 document.querySelectorAll('[id$="Modal"]').forEach(el => {
     el.setAttribute('tabindex', '-1');
     new MutationObserver(() => {
@@ -222,14 +238,14 @@ function showConfirmModal(message, callback, options = {}) {
         title = 'Confirm Deletion',
         confirmLabel = 'Yes, delete',
         variant = 'danger',
-        icon = '⚠️'
+        icon = 'fi-rr-triangle-warning'
     } = options;
 
     document.getElementById('confirmModalTitle').innerText = title;
     document.getElementById('confirmModalMessage').innerText = message;
 
     const iconWrap = document.getElementById('confirmModalIconWrap');
-    iconWrap.innerText = icon;
+    iconWrap.innerHTML = `<i class="fi ${icon}" aria-hidden="true"></i>`;
     iconWrap.className = "mx-auto w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-3 " +
         (variant === 'danger'
             ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
@@ -336,27 +352,27 @@ function logActivity(description) {
 function getActivityMeta(desc) {
     const d = (desc || '').toLowerCase();
     if (d.startsWith('deleted')) {
-        return { icon: '🗑️', badge: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' };
+        return { icon: '<i class="fi fi-rr-trash" aria-hidden="true"></i>', badge: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' };
     }
     if (d.startsWith('completed formation')) {
-        return { icon: '🎓', badge: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' };
+        return { icon: '<i class="fi fi-rr-graduation-cap" aria-hidden="true"></i>', badge: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' };
     }
     if (d.startsWith('reset formations')) {
-        return { icon: '↺', badge: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' };
+        return { icon: '<i class="fi fi-rr-undo" aria-hidden="true"></i>', badge: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' };
     }
     if (d.startsWith('added new member') || d.startsWith('added finance') || d.startsWith('added calendar')) {
-        return { icon: '➕', badge: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' };
+        return { icon: '<i class="fi fi-rr-plus-small" aria-hidden="true"></i>', badge: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' };
     }
     if (d.startsWith('updated info') || d.startsWith('edited calendar')) {
-        return { icon: '✎', badge: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' };
+        return { icon: '<i class="fi fi-rr-edit" aria-hidden="true"></i>', badge: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' };
     }
     if (d.startsWith('created a manual backup') || d.startsWith('restored backup')) {
-        return { icon: '📸', badge: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' };
+        return { icon: '<i class="fi fi-rr-camera" aria-hidden="true"></i>', badge: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' };
     }
     if (d.startsWith('exported') || d.startsWith('imported')) {
-        return { icon: '💾', badge: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400' };
+        return { icon: '<i class="fi fi-rr-disk" aria-hidden="true"></i>', badge: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400' };
     }
-    return { icon: '🔹', badge: 'bg-pastoral-100 dark:bg-slate-700 text-pastoral-700 dark:text-slate-300' };
+    return { icon: '<i class="fi fi-rr-info" aria-hidden="true"></i>', badge: 'bg-pastoral-100 dark:bg-slate-700 text-pastoral-700 dark:text-slate-300' };
 }
 
 function formatHistoryDateHeader(ts) {
@@ -399,7 +415,7 @@ function renderHistoryLogs() {
     if (activityHistory.length === 0) {
         container.innerHTML = `
             <div class="flex flex-col items-center justify-center py-12 text-center text-slate-400">
-                <span class="text-2xl mb-2">🗂️</span>
+                <i class="fi fi-rr-time-past text-2xl mb-2" aria-hidden="true"></i>
                 <p class="italic text-[11px]">No recent activity recorded yet.</p>
             </div>`;
         return;
@@ -443,7 +459,7 @@ function buildFullSnapshot() {
         members: JSON.parse(JSON.stringify(members)),
         // Pictures are left out of in-browser snapshots: they can be large and
         // localStorage only holds ~5 MB. (Export to JSON still includes them.)
-        finance: JSON.parse(JSON.stringify(financeTransactions)).map(t => { delete t.image; return t; }),
+        finance: JSON.parse(JSON.stringify(financeTransactions)).map(t => { delete t.image; delete t.images; return t; }),
         calendar: JSON.parse(JSON.stringify(calendarEvents))
     };
 }
@@ -493,7 +509,7 @@ function renderBackupList() {
     if (backups.length === 0) {
         container.innerHTML = `
             <div class="flex flex-col items-center justify-center py-10 text-center text-slate-400">
-                <span class="text-2xl mb-2">📦</span>
+                <i class="fi fi-rr-box-archive text-2xl mb-2" aria-hidden="true"></i>
                 <p class="italic text-[11px]">No backups saved yet. Tap "Back up now" to create one.</p>
             </div>`;
         return;
@@ -504,17 +520,17 @@ function renderBackupList() {
         div.className = "backup-card flex items-center justify-between gap-2 bg-pastoral-50/60 dark:bg-slate-900/50 px-3 py-2.5 rounded-lg border border-pastoral-100 dark:border-slate-700 text-[11px]";
         div.innerHTML = `
             <div class="min-w-0">
-                <span class="block font-semibold text-slate-700 dark:text-slate-200 truncate">📸 ${b.label}</span>
+                <span class="block font-semibold text-slate-700 dark:text-slate-200 truncate"><i class="fi fi-rr-camera mr-1" aria-hidden="true"></i>${b.label}</span>
                 <span class="block text-[10px] text-slate-400 font-mono mb-1.5">${b.time}</span>
                 <div class="flex flex-wrap gap-1">
-                    <span class="bg-white dark:bg-slate-800 border border-pastoral-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap">🧑‍🤝‍🧑 ${counts.members}</span>
-                    <span class="bg-white dark:bg-slate-800 border border-pastoral-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap">💰 ${counts.finance}</span>
-                    <span class="bg-white dark:bg-slate-800 border border-pastoral-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap">📅 ${counts.calendar}</span>
+                    <span class="bg-white dark:bg-slate-800 border border-pastoral-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap"><i class="fi fi-rr-users" aria-hidden="true"></i> ${counts.members}</span>
+                    <span class="bg-white dark:bg-slate-800 border border-pastoral-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap"><i class="fi fi-rr-sack-dollar" aria-hidden="true"></i> ${counts.finance}</span>
+                    <span class="bg-white dark:bg-slate-800 border border-pastoral-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap"><i class="fi fi-rr-calendar" aria-hidden="true"></i> ${counts.calendar}</span>
                 </div>
             </div>
             <div class="flex items-center gap-1 shrink-0">
                 <button onclick="restoreBackup(${index})" class="nav-action-btn bg-pastoral-700 hover:bg-pastoral-800 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-semibold" title="Restore this backup">Restore</button>
-                <button onclick="deleteBackup(${index})" class="nav-action-btn text-red-500 hover:text-red-700 font-bold w-7 h-7 flex items-center justify-center shrink-0" title="Delete this backup">✕</button>
+                <button onclick="deleteBackup(${index})" class="nav-action-btn text-red-500 hover:text-red-700 font-bold w-7 h-7 flex items-center justify-center shrink-0" title="Delete this backup"><i class="fi fi-rr-trash" aria-hidden="true"></i></button>
             </div>
         `;
         container.appendChild(div);
@@ -532,7 +548,7 @@ function deleteBackup(index) {
             logActivity(`Deleted saved backup: ${b.label} (${b.time})`);
             renderBackupList();
         },
-        { title: 'Delete Backup?', confirmLabel: 'Yes, delete', variant: 'danger', icon: '🗑️' }
+        { title: 'Delete Backup?', confirmLabel: 'Yes, delete', variant: 'danger', icon: 'fi-rr-trash' }
     );
 }
 
@@ -567,7 +583,7 @@ function restoreBackup(index) {
                 alert('Error restoring backup. Please try again.');
             }
         },
-        { title: 'Confirm Restore', confirmLabel: 'Yes, restore', variant: 'primary', icon: '🔄' }
+        { title: 'Confirm Restore', confirmLabel: 'Yes, restore', variant: 'primary', icon: 'fi-rr-refresh' }
     );
 }
 
@@ -659,8 +675,6 @@ function buildPaginationControls(containerId, totalItems, perPage, currentPage, 
     if (totalItems === 0) return;
 
     const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
-    const startItem = (currentPage - 1) * perPage + 1;
-    const endItem = Math.min(currentPage * perPage, totalItems);
 
     const wrap = document.createElement('div');
     wrap.className = "inline-flex items-center gap-1 bg-pastoral-50 dark:bg-slate-900/60 border border-pastoral-100 dark:border-slate-700 rounded-full p-1";
@@ -669,7 +683,7 @@ function buildPaginationControls(containerId, totalItems, perPage, currentPage, 
 
     const prevBtn = document.createElement('button');
     prevBtn.type = 'button';
-    prevBtn.innerHTML = '‹';
+    prevBtn.innerHTML = '<i class="fi fi-rr-angle-small-left" aria-hidden="true"></i>';
     prevBtn.title = 'Previous page';
     prevBtn.disabled = currentPage <= 1;
     prevBtn.className = navBtnClass;
@@ -677,13 +691,13 @@ function buildPaginationControls(containerId, totalItems, perPage, currentPage, 
     wrap.appendChild(prevBtn);
 
     const pageLabel = document.createElement('span');
-    pageLabel.className = "px-3 min-w-[12.5rem] text-center text-[11px] font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap";
-    pageLabel.innerHTML = `Page ${currentPage} of ${totalPages} <span class="text-slate-400 font-normal">(${startItem}–${endItem} of ${totalItems})</span>`;
+    pageLabel.className = "px-3 min-w-[6.5rem] text-center text-[11px] font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap";
+    pageLabel.innerText = `Page ${currentPage} of ${totalPages}`;
     wrap.appendChild(pageLabel);
 
     const nextBtn = document.createElement('button');
     nextBtn.type = 'button';
-    nextBtn.innerHTML = '›';
+    nextBtn.innerHTML = '<i class="fi fi-rr-angle-small-right" aria-hidden="true"></i>';
     nextBtn.title = 'Next page';
     nextBtn.disabled = currentPage >= totalPages;
     nextBtn.className = navBtnClass;
@@ -694,10 +708,19 @@ function buildPaginationControls(containerId, totalItems, perPage, currentPage, 
 }
 
 // --- Finance Tracker Functions (Cloud Synced) ---
-let transPendingImage = null; // base64 data URL of the picture in the open modal
+const MAX_TRANS_PHOTOS = 5;
+const MAX_TRANS_PHOTOS_CHARS = 900000; // keeps one entry under Firestore's 1 MB document limit
+let transPendingImages = []; // base64 data URLs of the photos in the open modal
 
-// Resize + compress so the picture stays small enough for Firestore (1 MB doc limit)
-function compressImage(file, maxSize = 900, quality = 0.7) {
+// Old entries stored a single "image"; new ones store an "images" array. Support both.
+function getTransactionImages(t) {
+    if (!t) return [];
+    if (Array.isArray(t.images)) return t.images;
+    return t.image ? [t.image] : [];
+}
+
+// Resize + compress so photos stay small enough for Firestore
+function compressImage(file, maxSize = 800, quality = 0.6) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = reject;
@@ -723,28 +746,68 @@ function compressImage(file, maxSize = 900, quality = 0.7) {
     });
 }
 
-function setTransactionImagePreview(dataUrl) {
-    transPendingImage = dataUrl || null;
-    const preview = document.getElementById('transImagePreview');
-    document.getElementById('transImagePreviewWrap').classList.toggle('hidden', !dataUrl);
-    document.getElementById('transImagePicker').classList.toggle('hidden', !!dataUrl);
-    preview.src = dataUrl || '';
+function renderTransactionImages() {
+    const grid = document.getElementById('transImageGrid');
+    const countEl = document.getElementById('transImageCount');
+    const addBtn = document.getElementById('transImageAddBtn');
+    if (!grid) return;
+    grid.innerHTML = '';
+    transPendingImages.forEach((src, i) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'relative aspect-square rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900';
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = `Photo ${i + 1}`;
+        img.className = 'w-full h-full object-cover';
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.setAttribute('aria-label', `Remove photo ${i + 1}`);
+        rm.className = 'absolute top-1 right-1 w-8 h-8 rounded-full bg-black/65 text-white text-sm flex items-center justify-center';
+        rm.innerHTML = '<i class="fi fi-rr-cross-small" aria-hidden="true"></i>';
+        rm.onclick = () => removeTransactionImage(i);
+        wrap.appendChild(img);
+        wrap.appendChild(rm);
+        grid.appendChild(wrap);
+    });
+    grid.classList.toggle('hidden', transPendingImages.length === 0);
+    if (countEl) countEl.innerText = `${transPendingImages.length} / ${MAX_TRANS_PHOTOS}`;
+    if (addBtn) addBtn.classList.toggle('hidden', transPendingImages.length >= MAX_TRANS_PHOTOS);
 }
 
-async function handleTransactionImage(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    try {
-        setTransactionImagePreview(await compressImage(file));
-    } catch (err) {
-        console.error('Image error: ', err);
-        alert('Could not read that image. Please try another photo.');
-    }
+async function handleTransactionImages(event) {
+    const files = Array.from(event.target.files || []);
     event.target.value = '';
+    if (!files.length) return;
+
+    const room = MAX_TRANS_PHOTOS - transPendingImages.length;
+    if (room <= 0) {
+        alert(`You can add up to ${MAX_TRANS_PHOTOS} photos per entry.`);
+        return;
+    }
+    if (files.length > room) {
+        alert(`You can add up to ${MAX_TRANS_PHOTOS} photos per entry. Only the first ${room} will be added.`);
+    }
+
+    for (const file of files.slice(0, room)) {
+        try {
+            const data = await compressImage(file);
+            const total = transPendingImages.reduce((sum, x) => sum + x.length, 0) + data.length;
+            if (total > MAX_TRANS_PHOTOS_CHARS) {
+                alert('These photos are too large to save together. Remove one or use a smaller photo.');
+                break;
+            }
+            transPendingImages.push(data);
+            renderTransactionImages();
+        } catch (err) {
+            console.error('Image error: ', err);
+            alert('Could not read one of the photos. Please try another.');
+        }
+    }
 }
 
-function removeTransactionImage() {
-    setTransactionImagePreview(null);
+function removeTransactionImage(index) {
+    transPendingImages.splice(index, 1);
+    renderTransactionImages();
 }
 
 function openAddTransactionModal() {
@@ -755,7 +818,8 @@ function openAddTransactionModal() {
     document.getElementById('transType').value = 'In';
     document.getElementById('transAmount').value = '';
     document.getElementById('transDate').value = new Date().toISOString().slice(0, 10);
-    setTransactionImagePreview(null);
+    transPendingImages = [];
+    renderTransactionImages();
     document.getElementById('addTransactionModal').classList.remove('hidden');
     document.getElementById('addTransactionModal').classList.add('flex');
 }
@@ -770,7 +834,8 @@ function openEditTransactionModal(firebaseId) {
     document.getElementById('transType').value = t.type || 'In';
     document.getElementById('transAmount').value = t.amount;
     document.getElementById('transDate').value = t.date || '';
-    setTransactionImagePreview(t.image || null);
+    transPendingImages = [...getTransactionImages(t)];
+    renderTransactionImages();
     document.getElementById('addTransactionModal').classList.remove('hidden');
     document.getElementById('addTransactionModal').classList.add('flex');
 }
@@ -779,7 +844,8 @@ function closeAddTransactionModal() {
     document.getElementById('addTransactionModal').classList.add('hidden');
     document.getElementById('addTransactionModal').classList.remove('flex');
     document.getElementById('transEditId').value = '';
-    setTransactionImagePreview(null);
+    transPendingImages = [];
+    renderTransactionImages();
 }
 
 async function saveTransaction(e) {
@@ -790,11 +856,12 @@ async function saveTransaction(e) {
     const amount = parseFloat(document.getElementById('transAmount').value);
     const date = document.getElementById('transDate').value;
 
-    const data = { desc, type, amount, date, image: transPendingImage || null };
+    const data = { desc, type, amount, date, images: [...transPendingImages] };
 
     try {
         if (editId) {
-            await db.collection("finance").doc(editId).update(data);
+            // also clears the old single "image" field if this entry had one
+            await db.collection("finance").doc(editId).update({ ...data, image: firebase.firestore.FieldValue.delete() });
             logActivity(`Updated info for finance transaction: ${desc} (₱${amount})`);
         } else {
             await db.collection("finance").add(data);
@@ -804,15 +871,18 @@ async function saveTransaction(e) {
         closeAddTransactionModal();
     } catch (err) {
         console.error("Error saving transaction: ", err);
-        alert("Error saving transaction to cloud.");
+        alert("Error saving transaction to cloud. If you added several photos, try fewer or smaller ones.");
     }
 }
 
-function viewTransactionImage(firebaseId) {
+function viewTransactionImages(firebaseId) {
     const t = financeTransactions.find(x => x.firebaseId === firebaseId);
-    if (!t || !t.image) return;
-    document.getElementById('imageViewerTitle').innerText = `${t.desc} — ₱${t.amount.toFixed(2)}`;
-    document.getElementById('imageViewerImg').src = t.image;
+    const imgs = getTransactionImages(t);
+    if (!t || imgs.length === 0) return;
+    document.getElementById('imageViewerTitle').innerText = `${t.desc} — ₱${t.amount.toFixed(2)} (${imgs.length} photo${imgs.length === 1 ? '' : 's'})`;
+    document.getElementById('imageViewerList').innerHTML = imgs.map((src, i) =>
+        `<img src="${src}" alt="Photo ${i + 1}" class="w-full h-auto rounded-lg mb-3 last:mb-0">`
+    ).join('');
     document.getElementById('imageViewerModal').classList.remove('hidden');
     document.getElementById('imageViewerModal').classList.add('flex');
 }
@@ -820,7 +890,7 @@ function viewTransactionImage(firebaseId) {
 function closeImageViewer() {
     document.getElementById('imageViewerModal').classList.add('hidden');
     document.getElementById('imageViewerModal').classList.remove('flex');
-    document.getElementById('imageViewerImg').src = '';
+    document.getElementById('imageViewerList').innerHTML = '';
 }
 
 function deleteTransaction(firebaseId) {
@@ -865,6 +935,7 @@ function renderFinanceTracker() {
 
     pageItems.forEach((t, idx) => {
         const rowNum = (financePage - 1) * FINANCE_PER_PAGE + idx + 1;
+        const imgCount = getTransactionImages(t).length;
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td data-label="#" class="py-3.5 px-4 text-center text-slate-400 font-mono">${rowNum}</td>
@@ -874,9 +945,9 @@ function renderFinanceTracker() {
             <td data-label="Amount" class="py-3.5 px-4 text-right font-mono font-bold ${t.type === 'In' ? 'text-emerald-600' : 'text-red-500'}">₱${t.amount.toFixed(2)}</td>
             <td data-label="Action" class="py-3.5 px-4 text-center whitespace-nowrap">
                 <div class="flex items-center justify-center gap-1">
-                    ${t.image ? `<button onclick="viewTransactionImage('${t.firebaseId}')" class="w-6 h-6 inline-flex items-center justify-center transition hover:scale-110" title="View picture">🖼️</button>` : ''}
-                    <button onclick="openEditTransactionModal('${t.firebaseId}')" class="text-pastoral-700 dark:text-emerald-400 hover:text-pastoral-900 dark:hover:text-emerald-300 font-bold w-6 h-6 inline-flex items-center justify-center transition" title="Edit">✎</button>
-                    <button onclick="deleteTransaction('${t.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold w-6 h-6 inline-flex items-center justify-center transition" title="Delete">✕</button>
+                    ${imgCount > 0 ? `<button onclick="viewTransactionImages('${t.firebaseId}')" class="h-9 min-w-[2.25rem] px-1 inline-flex items-center justify-center gap-0.5 transition hover:scale-110" title="View photos"><i class="fi fi-rr-picture" aria-hidden="true"></i>${imgCount > 1 ? `<span class="text-[10px] font-bold text-slate-500 dark:text-slate-300">${imgCount}</span>` : ''}</button>` : ''}
+                    <button onclick="openEditTransactionModal('${t.firebaseId}')" class="text-pastoral-700 dark:text-emerald-400 hover:text-pastoral-900 dark:hover:text-emerald-300 font-bold w-9 h-9 inline-flex items-center justify-center transition" title="Edit"><i class="fi fi-rr-edit" aria-hidden="true"></i></button>
+                    <button onclick="deleteTransaction('${t.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold w-9 h-9 inline-flex items-center justify-center transition" title="Delete"><i class="fi fi-rr-trash" aria-hidden="true"></i></button>
                 </div>
             </td>
         `;
@@ -1155,8 +1226,8 @@ function renderDayDetailList(dateStr) {
                 <p class="font-semibold text-slate-800 dark:text-slate-100 truncate">${ev.title}</p>
             </div>
             <div class="flex items-center gap-1 shrink-0">
-                <button onclick="openEditEventModal('${ev.firebaseId}')" class="text-pastoral-700 dark:text-emerald-400 hover:text-pastoral-900 dark:hover:text-emerald-300 font-bold px-2 py-1" title="Edit event">✎</button>
-                <button onclick="deleteCalendarEvent('${ev.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1" title="Delete event">✕</button>
+                <button onclick="openEditEventModal('${ev.firebaseId}')" class="text-pastoral-700 dark:text-emerald-400 hover:text-pastoral-900 dark:hover:text-emerald-300 font-bold px-2 py-1" title="Edit event"><i class="fi fi-rr-edit" aria-hidden="true"></i></button>
+                <button onclick="deleteCalendarEvent('${ev.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1" title="Delete event"><i class="fi fi-rr-trash" aria-hidden="true"></i></button>
             </div>
         </div>`;
     }).join('');
@@ -1266,7 +1337,7 @@ function renderTable() {
                 <div class="flex flex-nowrap justify-center items-center gap-1.5">
                     <button onclick="openFormationModal('${m.firebaseId}')" class="shrink-0 bg-pastoral-700 hover:bg-pastoral-800 text-white px-2.5 py-1.5 rounded-lg text-[11px] font-semibold shadow-sm transition active:scale-95">Formation</button>
                     <button onclick="openEditModal('${m.firebaseId}')" class="shrink-0 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition">Edit</button>
-                    <button onclick="deleteMember('${m.firebaseId}')" class="shrink-0 text-slate-400 hover:text-red-600 font-bold w-6 h-6 flex items-center justify-center transition text-sm" title="Delete">✕</button>
+                    <button onclick="deleteMember('${m.firebaseId}')" class="shrink-0 text-slate-400 hover:text-red-600 font-bold w-6 h-6 flex items-center justify-center transition text-sm" title="Delete"><i class="fi fi-rr-trash" aria-hidden="true"></i></button>
                 </div>
             </td>
         `;
@@ -1392,7 +1463,7 @@ function renderModalFormations() {
             </div>
             <div>
                 <button onclick="toggleCompleteFormation(${index})" class="px-3 py-1.5 rounded-lg text-[11px] font-bold transition shadow-xs ${isComplete ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200'}">
-                    ${isComplete ? '✓ Completed' : 'Mark complete'}
+                    ${isComplete ? '<i class="fi fi-rr-check" aria-hidden="true"></i> Completed' : 'Mark complete'}
                 </button>
             </div>
         `;
@@ -1534,7 +1605,7 @@ function renderAddFormFormationList() {
                 <span class="block text-[10px] text-slate-400">${attendedCount} of ${f.talks} talks</span>
             </div>
             <button type="button" onclick="toggleAddFormFormation(${index})" class="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold transition shadow-xs ${isComplete ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200'}">
-                ${isComplete ? '✓ Completed' : 'Mark complete'}
+                ${isComplete ? '<i class="fi fi-rr-check" aria-hidden="true"></i> Completed' : 'Mark complete'}
             </button>
         `;
         container.appendChild(row);
@@ -1716,7 +1787,7 @@ function importData(event) {
                 alert("Error importing data to cloud.");
             }
             event.target.value = '';
-        }, { title: 'Confirm Import', confirmLabel: 'Yes, import', variant: 'primary', icon: '📂' });
+        }, { title: 'Confirm Import', confirmLabel: 'Yes, import', variant: 'primary', icon: 'fi-rr-folder-open' });
 
         event.target.value = '';
     };
