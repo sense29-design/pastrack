@@ -80,7 +80,7 @@
         <div class="header-texture bg-gradient-to-br from-pastoral-800 to-pastoral-950 text-white px-4 sm:px-6 py-4 sm:py-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4">
             <div class="min-w-0">
                 <h1 class="font-serif-display text-base sm:text-lg xl:text-xl font-semibold tracking-tight leading-tight">YFC Pastoral Formation Tracker</h1>
-                <p class="text-[11px] text-pastoral-200 mt-1">Area Cluster B — following each member's formation journey &amp; finances</p>
+                <p class="text-[11px] text-pastoral-200 mt-1">Central Sector Cluster B</p>
             </div>
 
             <!-- RESPONSIVE: wraps into a tidy grid on phones instead of squeezing into one row -->
@@ -501,21 +501,18 @@
                 <input type="date" id="transDate" required class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-slate-900">
             </div>
 
-            <!-- Picture (optional) -->
-            <div>
-                <label class="block font-semibold mb-1">Picture <span class="font-normal text-slate-400">(optional)</span></label>
-                <input type="file" id="transImageInput" accept="image/*" onchange="handleTransactionImage(event)" class="hidden">
-                <label id="transImagePicker" for="transImageInput" class="flex items-center justify-center gap-2 w-full border border-dashed border-slate-300 dark:border-slate-600 rounded-lg px-3 py-4 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 cursor-pointer hover:border-pastoral-600 transition">
-                    📷 <span>Choose a photo (receipt, proof, etc.)</span>
-                </label>
-                <div id="transImagePreviewWrap" class="hidden">
-                    <img id="transImagePreview" alt="Transaction picture preview" class="w-full max-h-48 object-contain rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-                    <div class="flex gap-2 mt-2">
-                        <label for="transImageInput" class="flex-1 text-center bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-medium cursor-pointer transition">Change</label>
-                        <button type="button" onclick="removeTransactionImage()" class="flex-1 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-2 rounded-lg font-medium transition">Remove</button>
-                    </div>
-                </div>
-            </div>
+           <!-- Photos (optional, up to 5) -->
+<div>
+    <div class="flex items-center justify-between mb-1">
+        <label class="block font-semibold">Photos <span class="font-normal text-slate-400">(optional)</span></label>
+        <span id="transImageCount" class="text-[10px] text-slate-400">0 / 5</span>
+    </div>
+    <input type="file" id="transImageInput" accept="image/*" multiple onchange="handleTransactionImages(event)" class="hidden">
+    <div id="transImageGrid" class="hidden grid grid-cols-3 gap-2 mb-2"></div>
+    <label id="transImageAddBtn" for="transImageInput" class="flex items-center justify-center gap-2 w-full min-h-[44px] border border-dashed border-slate-300 dark:border-slate-600 rounded-lg px-3 py-3 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 cursor-pointer hover:border-pastoral-600 transition">
+       <i class="fi fi-rr-camera" aria-hidden="true"></i> <span>Add photo</span>
+    </label>
+</div>
 
             <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
                 <button type="button" onclick="closeAddTransactionModal()" class="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-medium transition min-h-[44px]">Cancel</button>
@@ -533,7 +530,7 @@
             <button onclick="closeImageViewer()" aria-label="Close" class="text-pastoral-200 hover:text-white font-bold text-base transition px-2"><i class="fi fi-rr-cross-small"></i></button>
         </div>
         <div class="p-3 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900">
-            <img id="imageViewerImg" alt="Transaction picture" class="w-full h-auto rounded-lg">
+            <div id="imageViewerList"></div>
         </div>
     </div>
 </div>
