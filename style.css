@@ -16,8 +16,11 @@ body { font-family: 'Inter', ui-sans-serif, system-ui; }
    overlay is visible, so the page underneath a popup can no longer be
    scrolled (desktop wheel/keyboard AND mobile touch). */
 body.modal-open-lock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    width: 100%;
     overflow: hidden;
-    height: 100%;
 }
 /* The overlay backdrop itself may still need to scroll on very short
    screens (so a tall modal isn't clipped) — allow that, but stop the
@@ -678,3 +681,8 @@ html { scrollbar-gutter: stable; }
 @media (min-width: 1024px) {
     #historyLogContainer, #backupListContainer { height: 26rem; max-height: 26rem; }
 }
+/* Phones: stop iOS/Android from zooming in when a field is tapped */
+@media (max-width: 767px) {
+    input, select, textarea { font-size: 16px !important; }
+}
+button, label, a { touch-action: manipulation; }
